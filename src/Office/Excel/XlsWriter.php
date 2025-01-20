@@ -55,8 +55,14 @@ class XlsWriter extends Excel implements ExcelPropertyInterface
             foreach ($data as $item) {
                 $tmp = [];
                 $errorMsg = '';
+                $emptyRow = true;
                 foreach ($item as $key => $value) {
                     $value = StrHelper::mb_trim((string) $value);
+                    // 判断是否是空行
+                    if($emptyRow && !empty($value)){
+                        $emptyRow = false;
+                    }
+
                     $tmpProperty = $this->property[$key];
                     $tmp[$tmpProperty['name']] = $value;
 
@@ -83,6 +89,9 @@ class XlsWriter extends Excel implements ExcelPropertyInterface
                             $errorMsg = CommonCode::PARAMS_WRONG_WITH_FIELD->genI18nMsg(['field' => $tmpProperty['value']], true, $this->nowLang);
                         }
                     }
+                }
+                if($emptyRow){
+                    continue;
                 }
                 $tmp['result'] = $errorMsg;
                 $importData[] = $tmp;

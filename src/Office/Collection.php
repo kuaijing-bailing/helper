@@ -15,6 +15,7 @@ use Bailing\Constants\Code\Common\CommonCode;
 use Bailing\Helper\ApiHelper;
 use Bailing\Office\Excel\PhpOffice;
 use Bailing\Office\Excel\XlsWriter;
+use Exception;
 use Hyperf\Codec\Json;
 use Hyperf\DbConnection\Model\Model;
 use Psr\Http\Message\ResponseInterface;
@@ -45,23 +46,25 @@ class Collection extends \Hyperf\Collection\Collection
     }
 
     /**
-     * 错误内容导出.
-     * @param string $dto
-     * @param string $errorFileKey
-     * @param string $filename
-     * @return array|ResponseInterface
+     * 写错误的缓存.
+     * @param string $keyPrefix 缓存前缀
+     * @param string $dto Dto类
+     * @param string $filename 错误文件名
+     * @param array $data 错误数据
+     * @param int $orgId 机构ID
+     * @param int $ttl 缓存时间，默认5分钟
+     * @return bool
      */
-    public function downloadImportErrorData(string $dto, string $errorFileKey, string $filename, int $orgId = 0): array|ResponseInterface
+    public function setImportErrorCache(string $keyPrefix, string $dto, string $filename, array $data, int $orgId = 0, int $ttl = 300): string
     {
-        if (empty($errorFileKey)) {
-            throw new \Exception(CommonCode::IMPORT_FILE_ID_EMPTY->genI18nMsg(returnNowLang: true));
-        }
-
-        $data = redis()->get($errorFileKey);
-        if (empty($data)) {
-            throw new \Exception(CommonCode::IMPORT_FILE_EXPIRED->genI18nMsg(returnNowLang: true));
-        }
-
-        return $this->export($dto, $filename . '-' . date('Ymd-His'), Json::decode($data), [], false, $orgId);
+        $errorRedisKey = $keyPrefix . ':' . $orgId . ':' . uniqid();
+        $cacheData  = [
+            'org_id' => $orgId,
+            'dto' => $dto,
+            'data' => $data,
+            'filename' => $filename,
+        ];
+        redis()->set($errorRedisKey, Json::encode($cacheData), $ttl);
+        return $errorRedisKey;
     }
 }
