@@ -105,8 +105,12 @@ trait EnumCodeGet
 
         // 返回当前语言的字符串，一般用于服务间的错误.
         if ($returnNowLang) {
-            $nowLang = I18nHelper::getNowLang($language);
-            $msg = $msgArr['i18nMsg'][$nowLang] ?? ($msgArr['i18nMsg']['zh_cn'] ?? $msgArr['msg']);
+            if(!empty($language)){
+                $nowLang = I18nHelper::getNowLang($language);
+            } else {
+                $nowLang = cfg('lang_default') ?: 'zh_cn';
+            }
+            $msg = $msgArr['i18nMsg'][$nowLang] ?? $msgArr['msg'];
             foreach ($i18nParam as $key => $value) {
                 $msg = str_replace(sprintf('{%s}', $key), $value, $msg);
             }
