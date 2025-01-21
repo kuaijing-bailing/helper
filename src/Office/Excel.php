@@ -62,9 +62,9 @@ abstract class Excel
                         index: $startIndex,
                         demo: $value['fields_demo'] ?? '',
                         tip: $value['fields_tip'] ?? '',
-                        i18nValue:  $value['i18n_fields_name']['i18n_value'] ?? [],
-                        i18nDemo:  $value['i18n_fields_demo']['i18n_value'] ?? [],
-                        i18nTip:  $value['i18n_fields_tip']['i18n_value'] ?? [],
+                        i18nValue: $value['i18n_fields_name']['i18n_value'] ?? [],
+                        i18nDemo: $value['i18n_fields_demo']['i18n_value'] ?? [],
+                        i18nTip: $value['i18n_fields_tip']['i18n_value'] ?? [],
                         width: 20,
                         align: 'left',
                         required: (bool) $value['fill'],
@@ -77,12 +77,12 @@ abstract class Excel
         }
 
         // 拼接导入结果字段
-        if (!$isDemo) {
+        if (! $isDemo) {
             $i18nResult = CommonI18n::IMPORT_RESULT->genI18nTxt();
             $this->annotationMate['_p']['result'][self::ANNOTATION_NAME] = new ExcelProperty(
                 value: '导入结果',
                 index: count($this->annotationMate['_p']),
-                i18nValue:  $i18nResult['i18n_value'],
+                i18nValue: $i18nResult['i18n_value'],
                 width: 25,
                 align: 'left',
                 required: false,
@@ -128,6 +128,7 @@ abstract class Excel
                 'color' => $mate[self::ANNOTATION_NAME]->color ?? null,
                 'bgColor' => $mate[self::ANNOTATION_NAME]->bgColor ?? null,
                 'dictName' => $mate[self::ANNOTATION_NAME]->dictName ?? '',
+                'dictData' => $mate[self::ANNOTATION_NAME]->dictData ?? [],
                 'required' => $mate[self::ANNOTATION_NAME]->required ?? false,
             ];
 
@@ -136,17 +137,17 @@ abstract class Excel
 
         // 批量替换字典
         $dictNameArr = arrayColumnUnique($this->property, 'dictName');
-        if(!empty($dictNameArr)){
+        if (! empty($dictNameArr)) {
             $dictResult = container()->get(OrgUserServiceInterface::class)->call('getSystemDictData', ['org_id' => $this->orgId, 'typeArr' => $dictNameArr]);
-            if(empty($dictResult['data']['list'])){
+            if (empty($dictResult['data']['list'])) {
                 throw new \Exception('Dict is empty, please check');
             }
             $dictResultArr = [];
-            foreach($dictResult['data']['list'] as $datum){
+            foreach ($dictResult['data']['list'] as $datum) {
                 $dictResultArr[$datum['dict_type']][$datum['value']] = $datum['i18n_label']['i18n_value'][$this->nowLang] ?? $datum['label'];
             }
-            foreach($this->property as &$propertyItem){
-                if(!empty($propertyItem['dictName']) && !empty($dictResultArr[$propertyItem['dictName']])){
+            foreach ($this->property as &$propertyItem) {
+                if (! empty($propertyItem['dictName']) && ! empty($dictResultArr[$propertyItem['dictName']])) {
                     $propertyItem['dictNameArr'] = $dictResultArr[$propertyItem['dictName']];
                 }
             }
