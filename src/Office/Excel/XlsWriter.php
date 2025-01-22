@@ -48,8 +48,7 @@ class XlsWriter extends Excel implements ExcelPropertyInterface
             file_put_contents($tempFilePath, $file->getStream()->getContents());
             $xlsxObject = new \Vtiful\Kernel\Excel(['path' => RUNTIME_BASE_PATH . '/']);
             $data = $xlsxObject->openFile($tempFileName)->openSheet()->getSheetData();
-            unset($data[0]);
-            unset($data[1]);
+            unset($data[0], $data[1]);
 
             $importData = [];
             foreach ($data as $item) {
@@ -59,7 +58,7 @@ class XlsWriter extends Excel implements ExcelPropertyInterface
                 foreach ($item as $key => $value) {
                     $value = StrHelper::mb_trim((string) $value);
                     // 判断是否是空行
-                    if($emptyRow && !empty($value)){
+                    if ($emptyRow && ! empty($value)) {
                         $emptyRow = false;
                     }
 
@@ -67,30 +66,30 @@ class XlsWriter extends Excel implements ExcelPropertyInterface
                     $tmp[$tmpProperty['name']] = $value;
 
                     // 判断必填字段
-                    if(empty($errorMsg) && $tmpProperty['required'] && empty($value)){
+                    if (empty($errorMsg) && $tmpProperty['required'] && empty($value)) {
                         $errorMsg = CommonCode::PARAMS_EMPTY_WITH_FIELD->genI18nMsg(['field' => $tmpProperty['value']], true, $this->nowLang);
                     }
 
                     // 判断字典值
-                    if(!empty($tmpProperty['dictNameArr'])) {
+                    if (! empty($tmpProperty['dictNameArr'])) {
                         stdLog()->info('dictNameArr', [$tmpProperty['dictNameArr'], $value]);
-                        if(in_array($value, $tmpProperty['dictNameArr'])){
+                        if (in_array($value, $tmpProperty['dictNameArr'])) {
                             $tmp[$tmpProperty['name']] = array_search($value, $tmpProperty['dictNameArr']);
-                        } else if(empty($errorMsg)){
+                        } elseif (empty($errorMsg) && $tmpProperty['required']) {
                             $errorMsg = CommonCode::PARAMS_WRONG_WITH_FIELD->genI18nMsg(['field' => $tmpProperty['value']], true, $this->nowLang);
                         }
                     }
 
                     // 判断字典数组
-                    if(!empty($tmpProperty['dictData'])) {
-                        if(in_array($value, $tmpProperty['dictData'])){
+                    if (! empty($tmpProperty['dictData'])) {
+                        if (in_array($value, $tmpProperty['dictData'])) {
                             $tmp[$tmpProperty['name']] = array_search($value, $tmpProperty['dictData']);
-                        } else if(empty($errorMsg)){
+                        } elseif (empty($errorMsg) && $tmpProperty['required']) {
                             $errorMsg = CommonCode::PARAMS_WRONG_WITH_FIELD->genI18nMsg(['field' => $tmpProperty['value']], true, $this->nowLang);
                         }
                     }
                 }
-                if($emptyRow){
+                if ($emptyRow) {
                     continue;
                 }
                 $tmp['result'] = $errorMsg;
@@ -138,7 +137,7 @@ class XlsWriter extends Excel implements ExcelPropertyInterface
             $columnName[] = $item['value'];
             $columnField[] = $item['name'];
 
-            if(!empty($item['tip'])){
+            if (! empty($item['tip'])) {
                 $columnTip[] = [
                     'value' => $item['value'],
                     'tip' => $item['tip'],
@@ -163,9 +162,9 @@ class XlsWriter extends Excel implements ExcelPropertyInterface
                     ->toResource()
             );
             // 判断校验字段
-            if(!empty($this->property[$i]['dictNameArr'])){
+            if (! empty($this->property[$i]['dictNameArr'])) {
                 $validationField[$i] = array_values($this->property[$i]['dictNameArr']);
-            } else if(!empty($this->property[$i]['dictData'])){
+            } elseif (! empty($this->property[$i]['dictData'])) {
                 $validationField[$i] = array_values($this->property[$i]['dictData']);
             }
         }
@@ -246,7 +245,7 @@ class XlsWriter extends Excel implements ExcelPropertyInterface
             '1. ' . CommonI18n::DONT_MODIFY_TABLE_STRUCTURE->genI18nTxt(returnNowLang: true),
             '2. ' . CommonI18n::RED_FIELDS_REQUIRED->genI18nTxt(returnNowLang: true),
         ];
-        foreach($columnTip as $item){
+        foreach ($columnTip as $item) {
             $tipArr[] = count($tipArr) . '. ' . $item['value'] . ': ' . $item['tip'];
         }
         $fileObject->mergeCells(sprintf('A1:%s1', $this->getColumnIndex(count($columnField) - 1)), implode(PHP_EOL, $tipArr));
@@ -261,12 +260,12 @@ class XlsWriter extends Excel implements ExcelPropertyInterface
         $filePath = $fileObject->data($exportData);
 
         // 判断校验字段
-        foreach($validationField as $key => $item) {
+        foreach ($validationField as $key => $item) {
             $validation = new Validation();
             $validation = $validation->validationType(Validation::TYPE_LIST)->valueList($item);
             $forRows = max(count($exportData), 22);
             $column = $this->getColumnIndex($key);
-            for($i=1; $i<$forRows; $i++){
+            for ($i = 1; $i < $forRows; ++$i) {
                 $filePath = $filePath->validation($column . $i, $validation->toResource());
             }
         }
