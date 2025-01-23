@@ -84,11 +84,7 @@ trait EnumI18nGet
         $txtArr = self::getEnums()[$this->name];
 
         if ($returnNowLang) {
-            if(!empty($language)){
-                $nowLang = I18nHelper::getNowLang($language);
-            } else {
-                $nowLang = cfg('lang_default') ?: 'zh_cn';
-            }
+            $nowLang = I18nHelper::getNowLang($language);
             $txt = $txtArr['i18nTxt'][$nowLang] ?? $txtArr['txt'];
             foreach ($i18nParams as $key => $value) {
                 $txt = str_replace(sprintf('{%s}', $key), $value, $txt);

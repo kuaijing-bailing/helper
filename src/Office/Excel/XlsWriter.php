@@ -265,7 +265,7 @@ class XlsWriter extends Excel implements ExcelPropertyInterface
             $validation = $validation->validationType(Validation::TYPE_LIST)->valueList($item);
             $forRows = max(count($exportData), 22);
             $column = $this->getColumnIndex($key);
-            for ($i = 1; $i < $forRows; ++$i) {
+            for ($i = 2; $i < $forRows; ++$i) {
                 $filePath = $filePath->validation($column . $i, $validation->toResource());
             }
         }
