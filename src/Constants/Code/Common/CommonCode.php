@@ -130,4 +130,7 @@ enum CommonCode: int implements EnumCodeInterface
 
     #[EnumCode(msg: '邮箱格式错误', i18nMsg: ['en' => 'Email format error', 'zh_tw' => '郵箱格式錯誤', 'ja' => 'メールフォーマットエラー', 'zh_hk' => '郵箱格式錯誤'])]
     case EMAIL_RULE_ERROR = 38;
+
+    #[EnumCode(msg: '图片mime类型（{file_mime}）不允许，只允许（{allow_mime}）', i18nMsg: ['en' => 'Image mime type ({file_mime}) is not allowed, only allow ({allow_mime})', 'zh_tw' => '圖片mime類型（{file_mime}）不允许，只允許（{allow_mime}）', 'zh_hk' => '圖片mime類型（{file_mime}）不允许，只允許（{allow_mime}）', 'ja' => '画像のMIMEタイプ（{file_mime}）は許可されていません。{allow_mime}のみ許可されています'])]
+    case FILE_MIME_NOT_ALLOW = 39;
 }
