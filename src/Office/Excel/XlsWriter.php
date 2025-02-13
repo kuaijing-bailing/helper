@@ -72,7 +72,6 @@ class XlsWriter extends Excel implements ExcelPropertyInterface
 
                     // 判断字典值
                     if (! empty($tmpProperty['dictNameArr'])) {
-                        stdLog()->info('dictNameArr', [$tmpProperty['dictNameArr'], $value]);
                         if (in_array($value, $tmpProperty['dictNameArr'])) {
                             $tmp[$tmpProperty['name']] = array_search($value, $tmpProperty['dictNameArr']);
                         } elseif (empty($errorMsg) && $tmpProperty['required']) {
