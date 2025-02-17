@@ -14,6 +14,7 @@ use Bailing\Annotation\EnumI18n;
 use Bailing\Annotation\EnumI18nGroup;
 use Bailing\Helper\EnumStore;
 use Bailing\Helper\Intl\I18nHelper;
+use Bailing\Model\BailingI18nTranslation;
 use Hyperf\Contract\TranslatorInterface;
 use ReflectionEnum;
 use ReflectionEnumUnitCase;
@@ -116,6 +117,10 @@ trait EnumI18nGet
         }
         $enumCases = $enum->getCases();
         $classObj = self::getEnumClassAttitude();
+
+        // 读取该分组下所有的多语言，以data_id作为键，value作为内容
+        $langList = BailingI18nTranslation::query()->where(['type' => 0, 'group_code' => $classObj->groupCode])->pluck('value', 'data_id')->toArray();
+
         foreach ($enumCases as $enumCase) {
             /** @var self $case */
             $case = $enumCase->getValue();
@@ -125,10 +130,11 @@ trait EnumI18nGet
                 'name' => $case->name,
                 'value' => $case->value,
                 'txt' => $obj->txt,
-                'i18nTxt' => $obj->i18nTxt,
+                'i18nTxt' => $langList[$case->value] ?? $obj->i18nTxt,
                 'group' => [
                     'groupCode' => $classObj->groupCode,
                 ],
+                'reported' => !empty($langList[$case->value]), // 曾经上报保存过多语言
             ];
             $caseArr['i18nKey'] = 'i18n.' . env('APP_NAME') . '.' . $caseArr['group']['groupCode'] . '.' . $caseArr['value'];
 

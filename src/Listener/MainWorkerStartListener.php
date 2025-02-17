@@ -11,8 +11,10 @@ declare(strict_types=1);
 
 namespace Bailing\Listener;
 
+use Bailing\Helper\Annotation\I18nTranslationReportHelper;
 use Bailing\Helper\Annotation\TranslationReportHelper;
 use Bailing\Helper\Approval\ApprovalProcessHelper;
+use Bailing\Helper\Intl\I18nTranslationHelper;
 use Bailing\Helper\OrgConfigHelper;
 use Bailing\Helper\TranslationHelper;
 use Bailing\Helper\XxlJobTaskHelper;
@@ -44,9 +46,16 @@ class MainWorkerStartListener implements ListenerInterface
 
     public function process(object $event): void
     {
-        // 初始化配置文件
+        // 初始化配置表
         OrgConfigHelper::createTable();
+
+        // 初始化数据多语言表
         TranslationHelper::createTable();
+
+        // 初始化I18n、Dict多语言表
+        I18nTranslationHelper::createTable();
+
+        // 初始化审批流程表
         ApprovalProcessHelper::createTable();
         ApprovalProcessHelper::createCategoryTable();
 
@@ -118,5 +127,8 @@ class MainWorkerStartListener implements ListenerInterface
 
         // 国际化上报
         (new TranslationReportHelper())->build();
+
+        // i18n国际化上报
+        (new I18nTranslationReportHelper())->build();
     }
 }

@@ -15,6 +15,7 @@ use Bailing\Constants\I18n\Common\CommonI18n;
 use Bailing\Exception\BusinessException;
 use Bailing\Helper\Intl\I18nHelper;
 use Bailing\JsonRpc\Org\OrgUserServiceInterface;
+use Bailing\Model\BailingI18nTranslation;
 use Bailing\Office\Annotation\ExcelProperty;
 use Bailing\Office\Interfaces\ModelExcelInterface;
 use Hyperf\Di\Annotation\AnnotationCollector;
@@ -52,6 +53,26 @@ abstract class Excel
         }
         $this->orgId = $orgId;
         $this->annotationMate = AnnotationCollector::get($dto);
+
+        // 处理国际化翻译 start
+        if (cfg('open_internationalize')) {
+            $dtoNameArr = explode('\\', $dto);
+            $dtoName = end($dtoNameArr);
+            $i18nTranslation = BailingI18nTranslation::query()->where(['type' => 1, 'group_code' => $dtoName])->pluck('value', 'data_id')->toArray();
+            foreach ($this->annotationMate['_p'] as $name => &$mate) {
+                if(!empty($mate[self::ANNOTATION_NAME]->i18nValue) && !empty($i18nTranslation['value_' . $name])){
+                    $mate[self::ANNOTATION_NAME]->i18nValue = $i18nTranslation['value_' . $name];
+                }
+                if(!empty($mate[self::ANNOTATION_NAME]->i18nTip) && !empty($i18nTranslation['tip_' . $name])){
+                    $mate[self::ANNOTATION_NAME]->i18nTip = $i18nTranslation['tip_' . $name];
+                }
+                if(!empty($mate[self::ANNOTATION_NAME]->i18nDemo) && !empty($i18nTranslation['demo_' . $name])){
+                    $mate[self::ANNOTATION_NAME]->i18nDemo = $i18nTranslation['demo_' . $name];
+                }
+            }
+        }
+        // 处理国际化翻译 end
+
         if (! empty($extraData)) {
             if (! empty($this->annotationMate['_c'])) {
                 $startIndex = count($this->annotationMate['_p']) - 1;
