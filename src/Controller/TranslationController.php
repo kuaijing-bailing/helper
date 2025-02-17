@@ -59,7 +59,7 @@ class TranslationController
         $post = request()->all();
         $value = $post['value'];
 
-        if (empty($dataId) || empty($value)) {
+        if (empty($value)) {
             return ApiHelper::genErrorData('Missing important fields');
         }
         $i18nTranslation = BailingTranslation::query()->where('data_id', $id)->first();
