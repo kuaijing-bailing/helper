@@ -19,16 +19,16 @@ use Psr\Http\Message\ResponseInterface;
 
 class Collection extends \Hyperf\Collection\Collection
 {
-    public function export(string $dto, string $filename, array|\Closure $closure = null, array $extra = [], bool $isDemo = false, int $orgId = 0): ResponseInterface
+    public function export(string $dto, string $filename, array|\Closure $closure = null, array $extra = [], bool $isDemo = false, int $orgId = 0, array $infos = []): ResponseInterface
     {
         $excelDrive = \Hyperf\Config\config('excel.drive', 'auto');
         if ($excelDrive === 'auto') {
-            $excel = extension_loaded('xlswriter') ? new XlsWriter($dto, $extra, $isDemo, $orgId) : new PhpOffice($dto);
+            $excel = extension_loaded('xlswriter') ? new XlsWriter($dto, $extra, $isDemo, $orgId, $infos) : new PhpOffice($dto);
         } else {
-            $excel = $excelDrive === 'xlsWriter' ? new XlsWriter($dto, $extra, $isDemo, $orgId) : new PhpOffice($dto);
+            $excel = $excelDrive === 'xlsWriter' ? new XlsWriter($dto, $extra, $isDemo, $orgId, $infos) : new PhpOffice($dto);
         }
 
-        return $excel->export($filename, is_null($closure) ? $this->toArray() : $closure, null, $isDemo, $orgId);
+        return $excel->export($filename, is_null($closure) ? $this->toArray() : $closure, null, $isDemo, $orgId, $infos);
     }
 
     public function import(string $dto, Model $model, ?\Closure $closure = null, array $extra = [], int $orgId = 0): bool
@@ -55,7 +55,7 @@ class Collection extends \Hyperf\Collection\Collection
     public function setImportErrorCache(string $keyPrefix, string $dto, string $filename, array $data, int $orgId = 0, int $ttl = 300): string
     {
         $errorRedisKey = $keyPrefix . ':' . $orgId . ':' . uniqid();
-        $cacheData  = [
+        $cacheData = [
             'org_id' => $orgId,
             'dto' => $dto,
             'data' => $data,

@@ -116,7 +116,7 @@ class XlsWriter extends Excel implements ExcelPropertyInterface
     /**
      * 导出excel.
      */
-    public function export(string $filename, array|\Closure $closure, \Closure $callbackData = null, bool $isDemo = false, int $orgId = 0): \Psr\Http\Message\ResponseInterface
+    public function export(string $filename, array|\Closure $closure, \Closure $callbackData = null, bool $isDemo = false, int $orgId = 0, array $infos = []): \Psr\Http\Message\ResponseInterface
     {
         $filename .= '.xlsx';
         is_array($closure) ? $data = &$closure : $data = $closure();
@@ -169,11 +169,22 @@ class XlsWriter extends Excel implements ExcelPropertyInterface
         }
 
         // 表头加样式
-        $fileObject->setRow(
-            sprintf('A1:%s1', $this->getColumnIndex(count($columnField))),
-            $this->property[0]['headHeight'] ?? 24,
-            $rowFormat->bold()->toResource()
-        );
+        if (empty($infos['is_export'])) {
+            $fileObject->setRow(
+                sprintf('A1:%s1', $this->getColumnIndex(count($columnField))),
+                $this->property[0]['headHeight'] ?? 24,
+                $rowFormat->bold()->toResource()
+            );
+        } else {
+            $fileObject->setRow(
+                sprintf('A1:%s1', $this->getColumnIndex(count($columnField))),
+                $this->property[0]['headHeight'] ?? 24,
+                $rowFormat->bold()
+                    ->background($this->property[0]['headBgColor'] ?? 0x4AC1FF)
+                    ->fontColor($this->property[0]['headColor'] ?? Format::COLOR_BLACK)
+                    ->toResource()
+            );
+        }
 
         // 表内容加样式
         $dataLength = max(count($data), 50);
@@ -183,24 +194,29 @@ class XlsWriter extends Excel implements ExcelPropertyInterface
             (new Format($fileObject->getHandle()))->align(Format::FORMAT_ALIGN_VERTICAL_CENTER)->toResource()
         );
 
-        for ($i = 0; $i < count($columnField); ++$i) {
-            $fileObject->insertText(
-                1,
-                $i,
-                $columnName[$i],
-                null,
-                (new Format($fileObject->getHandle()))
-                    ->bold()
-                    ->align(Format::FORMAT_ALIGN_CENTER, Format::FORMAT_ALIGN_VERTICAL_CENTER)
-                    ->background($this->property[$i]['headBgColor'] ?? 0x4AC1FF)
-                    ->fontColor($this->property[$i]['headColor'] ?? Format::COLOR_BLACK)
-                    ->toResource()
-            );
+        if (empty($infos['is_export'])) {
+            for ($i = 0; $i < count($columnField); ++$i) {
+                $fileObject->insertText(
+                    1,
+                    $i,
+                    $columnName[$i],
+                    null,
+                    (new Format($fileObject->getHandle()))
+                        ->bold()
+                        ->align(Format::FORMAT_ALIGN_CENTER, Format::FORMAT_ALIGN_VERTICAL_CENTER)
+                        ->background($this->property[$i]['headBgColor'] ?? 0x4AC1FF)
+                        ->fontColor($this->property[$i]['headColor'] ?? Format::COLOR_BLACK)
+                        ->toResource()
+                );
+            }
         }
 
-        $exportData = [
-            [],
-        ];
+        $exportData = [];
+        if (empty($infos['is_export'])) {
+            $exportData = [
+                [],
+            ];
+        }
         foreach ($data as $item) {
             $yield = [];
             if ($callbackData) {
@@ -239,20 +255,22 @@ class XlsWriter extends Excel implements ExcelPropertyInterface
             }
         }
 
-        $tipArr = [
-            CommonI18n::TIP->genI18nTxt(returnNowLang: true),
-            '1. ' . CommonI18n::DONT_MODIFY_TABLE_STRUCTURE->genI18nTxt(returnNowLang: true),
-            '2. ' . CommonI18n::RED_FIELDS_REQUIRED->genI18nTxt(returnNowLang: true),
-        ];
-        foreach ($columnTip as $item) {
-            $tipArr[] = count($tipArr) . '. ' . $item['value'] . ': ' . $item['tip'];
+        if (empty($infos['is_export'])) {
+            $tipArr = [
+                CommonI18n::TIP->genI18nTxt(returnNowLang: true),
+                '1. ' . CommonI18n::DONT_MODIFY_TABLE_STRUCTURE->genI18nTxt(returnNowLang: true),
+                '2. ' . CommonI18n::RED_FIELDS_REQUIRED->genI18nTxt(returnNowLang: true),
+            ];
+            foreach ($columnTip as $item) {
+                $tipArr[] = count($tipArr) . '. ' . $item['value'] . ': ' . $item['tip'];
+            }
+            $fileObject->mergeCells(sprintf('A1:%s1', $this->getColumnIndex(count($columnField) - 1)), implode(PHP_EOL, $tipArr));
+            $fileObject->setRow(
+                'A1:A1',
+                20 * count($tipArr),
+                (new Format($fileObject->getHandle()))->align(Format::FORMAT_ALIGN_LEFT, Format::FORMAT_ALIGN_VERTICAL_TOP)->wrap()->toResource()
+            );
         }
-        $fileObject->mergeCells(sprintf('A1:%s1', $this->getColumnIndex(count($columnField) - 1)), implode(PHP_EOL, $tipArr));
-        $fileObject->setRow(
-            'A1:A1',
-            20 * count($tipArr),
-            (new Format($fileObject->getHandle()))->align(Format::FORMAT_ALIGN_LEFT, Format::FORMAT_ALIGN_VERTICAL_TOP)->wrap()->toResource()
-        );
 
         $response = container()->get(ResponseInterface::class);
 

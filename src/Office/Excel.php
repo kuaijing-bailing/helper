@@ -41,7 +41,7 @@ abstract class Excel
 
     protected int $orgId = 0;
 
-    public function __construct(string $dto, array $extraData = [], bool $isDemo = false, int $orgId = 0)
+    public function __construct(string $dto, array $extraData = [], bool $isDemo = false, int $orgId = 0, array $infos = [])
     {
         if (! (new $dto()) instanceof ModelExcelInterface) {
             throw new BusinessException(0, 'Dto does not implement an interface of the MineModelExcel');
@@ -60,13 +60,13 @@ abstract class Excel
             $dtoName = end($dtoNameArr);
             $i18nTranslation = BailingI18nTranslation::query()->where(['type' => 1, 'group_code' => $dtoName])->pluck('value', 'data_id')->toArray();
             foreach ($this->annotationMate['_p'] as $name => &$mate) {
-                if(!empty($mate[self::ANNOTATION_NAME]->i18nValue) && !empty($i18nTranslation['value_' . $name])){
+                if (! empty($mate[self::ANNOTATION_NAME]->i18nValue) && ! empty($i18nTranslation['value_' . $name])) {
                     $mate[self::ANNOTATION_NAME]->i18nValue = $i18nTranslation['value_' . $name];
                 }
-                if(!empty($mate[self::ANNOTATION_NAME]->i18nTip) && !empty($i18nTranslation['tip_' . $name])){
+                if (! empty($mate[self::ANNOTATION_NAME]->i18nTip) && ! empty($i18nTranslation['tip_' . $name])) {
                     $mate[self::ANNOTATION_NAME]->i18nTip = $i18nTranslation['tip_' . $name];
                 }
-                if(!empty($mate[self::ANNOTATION_NAME]->i18nDemo) && !empty($i18nTranslation['demo_' . $name])){
+                if (! empty($mate[self::ANNOTATION_NAME]->i18nDemo) && ! empty($i18nTranslation['demo_' . $name])) {
                     $mate[self::ANNOTATION_NAME]->i18nDemo = $i18nTranslation['demo_' . $name];
                 }
             }
@@ -98,7 +98,7 @@ abstract class Excel
         }
 
         // 拼接导入结果字段
-        if (! $isDemo) {
+        if (! $isDemo && empty($infos['is_export'])) {
             $i18nResult = CommonI18n::IMPORT_RESULT->genI18nTxt();
             $this->annotationMate['_p']['result'][self::ANNOTATION_NAME] = new ExcelProperty(
                 value: '导入结果',
