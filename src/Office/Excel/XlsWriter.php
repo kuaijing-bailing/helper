@@ -47,7 +47,13 @@ class XlsWriter extends Excel implements ExcelPropertyInterface
             $tempFilePath = RUNTIME_BASE_PATH . '/' . $tempFileName;
             file_put_contents($tempFilePath, $file->getStream()->getContents());
             $xlsxObject = new \Vtiful\Kernel\Excel(['path' => RUNTIME_BASE_PATH . '/']);
-            $data = $xlsxObject->openFile($tempFileName)->openSheet()->getSheetData();
+
+            // 统一设置为字符串类型
+            $setTypeArr = [];
+            for($i = 0;$i < count($this->property); $i++){
+                $setTypeArr[] = \Vtiful\Kernel\Excel::TYPE_STRING;
+            }
+            $data = $xlsxObject->openFile($tempFileName)->openSheet()->setType($setTypeArr)->getSheetData();
             unset($data[0], $data[1]);
 
             $importData = [];
@@ -63,6 +69,10 @@ class XlsWriter extends Excel implements ExcelPropertyInterface
                     }
 
                     $tmpProperty = $this->property[$key];
+                    // 不存在的值则跳过
+                    if (empty($tmpProperty)) {
+                        continue;
+                    }
                     $tmp[$tmpProperty['name']] = $value;
 
                     // 判断必填字段
