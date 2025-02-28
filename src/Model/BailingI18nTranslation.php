@@ -18,6 +18,7 @@ namespace Bailing\Model;
  * @property string $data_id 数据文件的value，用于区分不同的数据
  * @property string $value_zh_cn 简体中文的值，后续搜索用
  * @property string $value 多语言的值
+ * @property int $is_changed 是否在后台修改过，如果没修改，程序则会自动更新
  * @property \Carbon\Carbon $created_at
  * @property \Carbon\Carbon $updated_at
  */
@@ -36,5 +37,5 @@ class BailingI18nTranslation extends Model
     /**
      * The attributes that should be cast to native types.
      */
-    protected array $casts = ['value' => 'array', 'id' => 'int', 'type' => 'integer', 'created_at' => 'datetime', 'updated_at' => 'datetime'];
+    protected array $casts = ['value' => 'array', 'id' => 'int', 'type' => 'integer', 'is_changed' => 'integer', 'created_at' => 'datetime', 'updated_at' => 'datetime'];
 }

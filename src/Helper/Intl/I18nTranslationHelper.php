@@ -22,11 +22,11 @@ class I18nTranslationHelper
     /**
      * 创建表.
      */
-    #[Cacheable(prefix: 'bailingI18nTranslationTable', ttl: 86400)]
+    #[Cacheable(prefix: 'bailingI18nTranslationTable-v2', ttl: 86400)]
     public static function createTable(): string
     {
         self::createTableCode();
-        return 'bailingI18nTranslationTable';
+        return 'bailingI18nTranslationTable-v2';
     }
 
     public static function createTableCode(): bool
@@ -40,8 +40,14 @@ class I18nTranslationHelper
                 $table->string('data_id', 50)->nullable()->comment('数据文件的value，用于区分不同的数据')->index('idx_data_id');
                 $table->string('value_zh_cn', 1000)->nullable()->comment('简体中文的值，后续搜索用');
                 $table->json('value')->nullable()->comment('多语言的值');
+                $table->tinyInteger('is_changed')->default(0)->comment('是否在后台修改过，如果没修改，程序则会自动更新');
                 $table->timestamps();
                 $table->comment('I18n国际化内容表');
+            });
+        }
+        if (! Schema::hasColumn('bailing_i18n_translation', 'is_changed')) {
+            Schema::table('bailing_i18n_translation', function (Blueprint $table) {
+                $table->tinyInteger('is_changed')->default(0)->comment('是否在后台修改过，如果没修改，程序则会自动更新')->after('value');
             });
         }
         return true;

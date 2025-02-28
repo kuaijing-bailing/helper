@@ -67,6 +67,7 @@ class I18nTranslationController
             return ApiHelper::genErrorDataEmpty();
         }
         $i18nTranslation->value = $value;
+        $i18nTranslation->is_changed = 1;
         $i18nTranslation->save();
 
         return ApiHelper::genSuccessData(['id' => $i18nTranslation->id]);
