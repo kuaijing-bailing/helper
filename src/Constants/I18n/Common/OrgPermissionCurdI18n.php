@@ -32,4 +32,7 @@ enum OrgPermissionCurdI18n: int  implements EnumI18nInterface
 
     #[EnumI18n(txt: '删除', i18nTxt: ['en' => 'Delete', 'zh_tw' => '刪除', 'zh_hk' => '刪除', 'ja' => '消去'])]
     case DELETE = 4;
+
+    #[EnumI18n(txt: '详情', i18nTxt: ['en' => 'Detail', 'zh_tw' => '詳細', 'zh_hk' => '詳細', 'ja' => '詳細'])]
+    case DETAIL = 5;
 }
