@@ -85,7 +85,7 @@ class DevI18nCommand extends HyperfCommand
             }
             $fileContent = file_get_contents($fileName);
 
-            // 自动补全原文件
+            // 自动补全原文件的名称
             if (! empty($tmp['module']) && empty($tmp['i18nName'])) {
                 $moduleNameArr = explode(':', $tmp['module']);
                 $name = end($moduleNameArr);
@@ -93,14 +93,39 @@ class DevI18nCommand extends HyperfCommand
                 $matchFileContent = "/#\\[OrgPermission\\(module: '" . $tmp['module'] . "',.*\\]/";
                 preg_match($matchFileContent, $fileContent, $matchResult);
 
-                $i18nTxt = I18nHelper::translateArr($name, true);
+                if (!empty($matchResult[0]) && !str_contains($matchResult[0], 'i18nName')) {
+                    $i18nTxt = I18nHelper::translateArr($name, true);
 
-                $matchContent = "#[OrgPermission(module: '" . $tmp['module'] . "',";
-                $fileSubContent = str_replace($matchContent, $matchContent . ' i18nName: ' . $i18nTxt . ',', $matchResult[0]);
+                    $matchContent = "#[OrgPermission(module: '" . $tmp['module'] . "',";
+                    $fileSubContent = str_replace($matchContent, $matchContent . ' i18nName: ' . $i18nTxt . ',', $matchResult[0]);
 
-                $fileContent = str_replace($matchResult[0], $fileSubContent, $fileContent);
+                    $fileContent = str_replace($matchResult[0], $fileSubContent, $fileContent);
 
-                file_put_contents($fileName, $fileContent);
+                    file_put_contents($fileName, $fileContent);
+                }
+            }
+
+            // 自动补全原文件的操作名称
+            if (! empty($tmp['module']) && ! empty($tmp['action']) && !str_starts_with($tmp['action'], 'curd') && empty($tmp['i18nActionName'])) {
+                $actionNameArr = explode('-', explode(':', $tmp['action'])[1]);
+                $name = $actionNameArr[0];
+                if(in_array($name, ['查看', '新增', '删除', '编辑'])){
+                    $this->line('org菜单中 ' . $tmp['module'] . ' 的 ' . $tmp['action'] . ' 书写格式错误，增删改查应该属于curd', 'error');
+                    die;
+                }
+
+                $matchFileContent = "/#\\[OrgPermission\\(module: '" . $tmp['module'] . "', action: '" . $tmp['action'] . "'.*\\]/";
+                preg_match($matchFileContent, $fileContent, $matchResult);
+
+                if (! empty($matchResult[0]) && !str_contains($matchResult[0], 'i18nActionName')) {
+                    $i18nTxt = I18nHelper::translateArr($name, true);
+                    $matchContent = "#[OrgPermission(module: '" . $tmp['module'] . "', action: '" . $tmp['action'] . "'";
+                    $fileSubContent = str_replace($matchContent, $matchContent . ', i18nActionName: ' . $i18nTxt, $matchResult[0]);
+
+                    $fileContent = str_replace($matchResult[0], $fileSubContent, $fileContent);
+
+                    file_put_contents($fileName, $fileContent);
+                }
             }
         }
 
@@ -108,7 +133,6 @@ class DevI18nCommand extends HyperfCommand
         $methods = AnnotationCollector::getMethodsByAnnotation(OrgPermission::class);
 
         foreach ($methods as $value) {
-            $tmp = (array) $value;
             $annotation = (array) $value['annotation'];
 
             // 得到文件名和文件内容
@@ -134,22 +158,39 @@ class DevI18nCommand extends HyperfCommand
                 $matchFileContent = "/#\\[OrgPermission\\(module: '" . $annotation['module'] . "',.*\\]/";
                 preg_match($matchFileContent, $fileContent, $matchResult);
 
-                if (empty($matchResult[0])) {
-                    continue;
+                if (!empty($matchResult[0]) && !str_contains($matchResult[0], 'i18nName')) {
+                    $i18nTxt = I18nHelper::translateArr($name, true);
+
+                    $matchContent = "#[OrgPermission(module: '" . $annotation['module'] . "',";
+                    $fileSubContent = str_replace($matchContent, $matchContent . ' i18nName: ' . $i18nTxt . ',', $matchResult[0]);
+
+                    $fileContent = str_replace($matchResult[0], $fileSubContent, $fileContent);
+
+                    file_put_contents($fileName, $fileContent);
+                }
+            }
+
+            // 自动补全原文件的操作名称
+            if (! empty($annotation['module']) && ! empty($annotation['action']) && !str_starts_with($annotation['action'], 'curd') && empty($annotation['i18nActionName'])) {
+                $actionNameArr = explode('-', explode(':', $annotation['action'])[1]);
+                $name = $actionNameArr[0];
+                if(in_array($name, ['查看', '新增', '删除', '编辑'])){
+                    $this->line('org菜单中 ' . $annotation['module'] . ' 的 ' . $annotation['action'] . ' 书写格式错误，增删改查应该属于curd', 'error');
+                    die;
                 }
 
-                if (str_contains($matchResult[0], 'i18nName:')) {
-                    continue;
+                $matchFileContent = "/#\\[OrgPermission\\(module: '" . $annotation['module'] . "', action: '" . $annotation['action'] . "'.*\\]/";
+                preg_match($matchFileContent, $fileContent, $matchResult);
+
+                if (! empty($matchResult[0]) && !str_contains($matchResult[0], 'i18nActionName')) {
+                    $i18nTxt = I18nHelper::translateArr($name, true);
+                    $matchContent = "#[OrgPermission(module: '" . $annotation['module'] . "', action: '" . $annotation['action'] . "'";
+                    $fileSubContent = str_replace($matchContent, $matchContent . ', i18nActionName: ' . $i18nTxt, $matchResult[0]);
+
+                    $fileContent = str_replace($matchResult[0], $fileSubContent, $fileContent);
+
+                    file_put_contents($fileName, $fileContent);
                 }
-
-                $i18nTxt = I18nHelper::translateArr($name, true);
-
-                $matchContent = "#[OrgPermission(module: '" . $annotation['module'] . "',";
-                $fileSubContent = str_replace($matchContent, $matchContent . ' i18nName: ' . $i18nTxt . ',', $matchResult[0]);
-
-                $fileContent = str_replace($matchResult[0], $fileSubContent, $fileContent);
-
-                file_put_contents($fileName, $fileContent);
             }
         }
     }

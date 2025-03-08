@@ -26,6 +26,8 @@ class OrgPermission extends AbstractAnnotation
 
     public array $i18nName = []; // 多语言名称
 
+    public array $i18nActionName = []; // 多语言操作名称
+
     public int $menuType = 1; // 1展示，0归类
 
     public string $urlType = 'path'; // 	URL类别(path, frame_url, target_url)
@@ -56,6 +58,7 @@ class OrgPermission extends AbstractAnnotation
         string $icon = '',
         string $activeIcon = '',
         array $i18nName = [],
+        array $i18nActionName = [],
         int $menuType = 1,
         string $urlType = 'path',
         string $alias = '',
@@ -74,6 +77,7 @@ class OrgPermission extends AbstractAnnotation
         $this->icon = $icon;
         $this->activeIcon = $activeIcon;
         $this->i18nName = $i18nName;
+        $this->i18nActionName = $i18nActionName;
         $this->menuType = $menuType;
         $this->urlType = $urlType;
         $this->alias = $alias;
