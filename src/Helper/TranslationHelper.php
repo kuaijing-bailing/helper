@@ -42,7 +42,7 @@ class TranslationHelper
                 $table->comment('国际化内容表');
             });
             if (! Schema::hasColumn('bailing_translation', 'is_changed')) {
-                Schema::create('bailing_translation', function (Blueprint $table) {
+                Schema::table('bailing_translation', function (Blueprint $table) {
                     $table->tinyInteger('is_changed')->default(0)->comment('是否在后台修改过，如果没修改，程序则会自动更新')->after('value');
                 });
             }
@@ -101,7 +101,7 @@ class TranslationHelper
         }
         $translation = BailingTranslation::query()->firstOrNew(['org_id' => $orgId, 'table_field' => $tableField, 'data_id' => $dataId]);
 
-        if (empty($translation->id) || ($isCover || !$translation->is_changed)) {
+        if (empty($translation->id) || $isCover) {
             $newValue = $value;
         } else {
             // 不覆盖原有的内容.
