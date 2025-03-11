@@ -41,11 +41,11 @@ class TranslationHelper
                 $table->timestamps();
                 $table->comment('国际化内容表');
             });
-            if (! Schema::hasColumn('bailing_translation', 'is_changed')) {
-                Schema::table('bailing_translation', function (Blueprint $table) {
-                    $table->tinyInteger('is_changed')->default(0)->comment('是否在后台修改过，如果没修改，程序则会自动更新')->after('value');
-                });
-            }
+        }
+        if (! Schema::hasColumn('bailing_translation', 'is_changed')) {
+            Schema::table('bailing_translation', function (Blueprint $table) {
+                $table->tinyInteger('is_changed')->default(0)->comment('是否在后台修改过，如果没修改，程序则会自动更新')->after('value');
+            });
         }
         return true;
     }
