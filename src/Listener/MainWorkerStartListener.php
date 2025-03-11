@@ -70,13 +70,7 @@ class MainWorkerStartListener implements ListenerInterface
         }
 
         // 扫描数据表字段的redis缓存，且删除掉
-        $redis = redis();
-        $redisKeyList = redisScan('database_table_column_type:*');
-        if (! empty($redisKeyList)) {
-            foreach ($redisKeyList as $redisKey) {
-                $redis->del($redisKey);
-            }
-        }
+        redisDelByPattern('database_table_column_type:*');
 
         // 检测mq的queue、exchange是否以当前服务名开始，避免复制其他代码导致queue相同，引发问题（system.开头的代表系统级）
         if (env('AMQP_USER') && env('AMQP_PASSWORD') && env('APP_NAME')) {
