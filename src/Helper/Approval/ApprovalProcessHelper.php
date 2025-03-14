@@ -146,7 +146,7 @@ class ApprovalProcessHelper
     /**
      * 创建表.
      */
-    #[Cacheable(prefix: 'bailingApprovalCategory', ttl: 86400)]
+    #[Cacheable(prefix: 'bailingApprovalCategory-v2', ttl: 86400)]
     public static function createCategoryTable(): string
     {
         self::createCategoryTableCode();
@@ -170,6 +170,11 @@ class ApprovalProcessHelper
                 $table->datetimes();
                 $table->softDeletes();
                 $table->comment('审批类别表');
+            });
+        }
+        if (! Schema::hasColumn('bailing_approval_category', 'cate_sort')) {
+            Schema::table('bailing_approval_category', function (Blueprint $table) {
+                $table->integer('cate_sort')->default(0)->comment('排序')->after('i18n_source_txt');
             });
         }
 

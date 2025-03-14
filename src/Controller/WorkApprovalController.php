@@ -86,7 +86,7 @@ class WorkApprovalController
             $temp['name'] = $item['name'];
             $temp['i18n_name'] = [
                 'value' => $item['name'],
-                'i18n_value' => $item['i18n_name']
+                'i18n_value' => $item['i18n_name'],
             ];
             $temp['alias'] = $item['alias'];
             $temp['icon'] = domain() . '/public_web/static/images' . $item['icon'];
@@ -148,6 +148,8 @@ class WorkApprovalController
                         'form' => $list['form'],
                         'start_user_type' => $list['start_user_type'], // 2所有人不能发起,0所有人可以发起
                         'process' => [],
+                        'first_cate_sort' => ! empty($firstCategory->cate_sort) ? $firstCategory->cate_sort : 0,
+                        'second_cate_sort' => $secondCategory ? $secondCategory->cate_sort : 0,
                     ];
                     $initData[] = $temp;
                 }

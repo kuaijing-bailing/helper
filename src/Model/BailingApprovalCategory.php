@@ -19,6 +19,7 @@ use Carbon\Carbon;
  * @property string $i18n_name 审批模板名称多语言
  * @property string $alias 审批的别名字符串
  * @property string $source_txt 添加模板的应用/模块名称
+ * @property int $cate_sort 排序
  * @property string $i18n_source_txt 添加模板的应用/模块名称多语言
  * @property string $created_name 创建数据的人员名字
  * @property string $updated_name 最后修改数据的人员名字
@@ -41,5 +42,5 @@ class BailingApprovalCategory extends Model
     /**
      * The attributes that should be cast to native types.
      */
-    protected array $casts = ['id' => 'integer', 'created_at' => 'datetime', 'updated_at' => 'datetime', 'i18n_name' => 'array', 'i18n_source_txt' => 'array'];
+    protected array $casts = ['cate_sort' => 'integer', 'id' => 'integer', 'created_at' => 'datetime', 'updated_at' => 'datetime', 'i18n_name' => 'array', 'i18n_source_txt' => 'array'];
 }

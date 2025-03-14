@@ -8,6 +8,7 @@ declare(strict_types=1);
  * @document https://help.kuaijingai.com
  * @contact  www.kuaijingai.com 7*12 9:00-21:00
  */
+
 namespace Bailing\Helper\Intl;
 
 use Bailing\Helper\HttpHelper;
@@ -136,7 +137,7 @@ class I18nTranslationHelper
     /**
      * 谷歌翻译-文本翻译.
      */
-    public static function translate(string|array $text, string $source, string $target): string
+    public static function translate(array|string $text, string $source, string $target): string
     {
         if (! cfg('google_translate_key')) {
             return '';
