@@ -35,4 +35,16 @@ enum OrgPermissionCurdI18n: int  implements EnumI18nInterface
 
     #[EnumI18n(txt: '详情', i18nTxt: ['en' => 'Detail', 'zh_tw' => '詳細', 'zh_hk' => '詳細', 'ja' => '詳細'])]
     case DETAIL = 5;
+
+    #[EnumI18n(txt: '导出', i18nTxt: ['en' => 'Export', 'zh_tw' => '匯出', 'zh_hk' => '匯出', 'ja' => '輸出'])]
+    case EXPORT = 6;
+
+    #[EnumI18n(txt: '导入', i18nTxt: ['en' => 'Import', 'zh_tw' => '匯入', 'zh_hk' => '匯入', 'ja' => '輸入'])]
+    case IMPORT = 7;
+
+    #[EnumI18n(txt: '字典设置', i18nTxt: ['en' => 'Dict', 'zh_tw' => '字典設定', 'zh_hk' => '字典設定', 'ja' => '辞書設定'])]
+    case DICT = 8;
+
+    #[EnumI18n(txt: '审批流设置', i18nTxt: ['en' => 'Approval', 'zh_tw' => '審批流設定', 'zh_hk' => '審批流設定', 'ja' => '承認フロー設定'])]
+    case APPROVAL = 9;
 }

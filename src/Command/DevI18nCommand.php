@@ -109,7 +109,7 @@ class DevI18nCommand extends HyperfCommand
             if (! empty($tmp['module']) && ! empty($tmp['action']) && !str_starts_with($tmp['action'], 'curd') && empty($tmp['i18nActionName'])) {
                 $actionNameArr = explode('-', explode(':', $tmp['action'])[1]);
                 $name = $actionNameArr[0];
-                if(in_array($name, ['查看', '新增', '删除', '编辑'])){
+                if (in_array($name, ['查看', '新增', '删除', '编辑', '导出', '字典设置', '审批流设置'])) {
                     $this->line('org菜单中 ' . $tmp['module'] . ' 的 ' . $tmp['action'] . ' 书写格式错误，增删改查应该属于curd', 'error');
                     die;
                 }
@@ -155,7 +155,7 @@ class DevI18nCommand extends HyperfCommand
                 $moduleNameArr = explode(':', $annotation['module']);
                 $name = end($moduleNameArr);
 
-                $matchFileContent = "/#\\[OrgPermission\\(module: '" . $annotation['module'] . "',.*\\]/";
+                $matchFileContent = "/#\\[OrgPermission\\(module: '" . str_replace('/', '\/', $annotation['module']) . "',.*\\]/";
                 preg_match($matchFileContent, $fileContent, $matchResult);
 
                 if (!empty($matchResult[0]) && !str_contains($matchResult[0], 'i18nName')) {
@@ -179,7 +179,7 @@ class DevI18nCommand extends HyperfCommand
                     die;
                 }
 
-                $matchFileContent = "/#\\[OrgPermission\\(module: '" . $annotation['module'] . "', action: '" . $annotation['action'] . "'.*\\]/";
+                $matchFileContent = "/#\\[OrgPermission\\(module: '" . str_replace('/', '\/', $annotation['module']) . "', action: '" . str_replace('/', '\/', $annotation['action']) . "'.*\\]/";
                 preg_match($matchFileContent, $fileContent, $matchResult);
 
                 if (! empty($matchResult[0]) && !str_contains($matchResult[0], 'i18nActionName')) {
