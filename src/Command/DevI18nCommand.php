@@ -109,7 +109,7 @@ class DevI18nCommand extends HyperfCommand
             if (! empty($tmp['module']) && ! empty($tmp['action']) && !str_starts_with($tmp['action'], 'curd') && empty($tmp['i18nActionName'])) {
                 $actionNameArr = explode('-', explode(':', $tmp['action'])[1]);
                 $name = $actionNameArr[0];
-                if (in_array($name, ['查看', '新增', '删除', '编辑', '导出', '字典设置', '审批流设置'])) {
+                if (in_array($name, ['查看', '新增', '删除', '编辑', '导出', '字典设置', '审批流设置', '变更状态'])) {
                     $this->line('org菜单中 ' . $tmp['module'] . ' 的 ' . $tmp['action'] . ' 书写格式错误，增删改查应该属于curd', 'error');
                     die;
                 }

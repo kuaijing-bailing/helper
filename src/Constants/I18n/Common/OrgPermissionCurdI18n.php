@@ -47,4 +47,7 @@ enum OrgPermissionCurdI18n: int  implements EnumI18nInterface
 
     #[EnumI18n(txt: '审批流设置', i18nTxt: ['en' => 'Approval', 'zh_tw' => '審批流設定', 'zh_hk' => '審批流設定', 'ja' => '承認フロー設定'])]
     case APPROVAL = 9;
+
+    #[EnumI18n(txt: '变更状态', i18nTxt: ['en' => 'Change Status', 'zh_tw' => '變更狀態', 'zh_hk' => '變更狀態', 'ja' => 'ステータスを変更する'])]
+    case CHANGE_STATUS = 10;
 }
