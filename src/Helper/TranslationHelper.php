@@ -107,7 +107,7 @@ class TranslationHelper
             // 不覆盖原有的内容.
             $newValue = $translation->value;
             foreach ($value as $key => $item) {
-                if (empty($newValue[$key])) {
+                if (empty($newValue[$key]) || empty($translation->is_changed)) {
                     $newValue[$key] = $item;
                 }
             }
