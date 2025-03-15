@@ -16,6 +16,7 @@ use Bailing\Annotation\EnumI18nGroup;
 use Bailing\Annotation\LinkLibraryPermission;
 use Bailing\Annotation\OrgPermission;
 use Bailing\Helper\Intl\I18nHelper;
+use Bailing\Helper\OrgPermissionHelper;
 use Bailing\Office\Annotation\ExcelData;
 use Hyperf\Command\Annotation\Command;
 use Hyperf\Command\Command as HyperfCommand;
@@ -67,6 +68,10 @@ class DevI18nCommand extends HyperfCommand
     {
         $class = AnnotationCollector::getClassesByAnnotation(OrgPermission::class);
 
+        // 特殊处理curd按钮权限
+        $orgPermissionHelper = new OrgPermissionHelper();
+        $actionAliasList = $orgPermissionHelper->getActionAlias();
+
         foreach ($class as $key => $value) {
             $tmp = (array) $value;
 
@@ -105,11 +110,16 @@ class DevI18nCommand extends HyperfCommand
                 }
             }
 
+            // 自动补全action操作的名字
+            if (! empty($tmp['action']) && in_array($tmp['action'], $actionAliasList)) {
+                $tmp['action'] = 'curd:' . ($orgPermissionHelper->getActionI18nNames($tmp['action'])['value'] ?? '') . '-' . $tmp['action'];
+            }
+
             // 自动补全原文件的操作名称
             if (! empty($tmp['module']) && ! empty($tmp['action']) && !str_starts_with($tmp['action'], 'curd') && empty($tmp['i18nActionName'])) {
                 $actionNameArr = explode('-', explode(':', $tmp['action'])[1]);
                 $name = $actionNameArr[0];
-                if (in_array($name, ['查看', '新增', '删除', '编辑', '导出', '字典设置', '审批流设置', '变更状态'])) {
+                if (in_array($name, ['查看', '新增', '删除', '编辑', '导出', '排序', '字典设置', '审批流设置', '变更状态'])) {
                     $this->line('org菜单中 ' . $tmp['module'] . ' 的 ' . $tmp['action'] . ' 书写格式错误，增删改查应该属于curd', 'error');
                     die;
                 }
@@ -168,6 +178,11 @@ class DevI18nCommand extends HyperfCommand
 
                     file_put_contents($fileName, $fileContent);
                 }
+            }
+
+            // 自动补全action操作的名字
+            if (! empty($annotation['action']) && in_array($annotation['action'], $actionAliasList)) {
+                $annotation['action'] = 'curd:' . ($orgPermissionHelper->getActionI18nNames($annotation['action'])['value'] ?? '') . '-' . $annotation['action'];
             }
 
             // 自动补全原文件的操作名称

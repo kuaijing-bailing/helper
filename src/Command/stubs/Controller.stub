@@ -30,7 +30,7 @@ use Hyperf\HttpServer\Annotation\PutMapping;
 class %CLASS%Controller extends AbstractController
 {
     #[PostMapping(path: '%ROUTER%/query')]
-    #[OrgPermission(module: '', action: 'curd:查看-list', icon: '', alias: '', url: '', sort: 0, app: '')]
+    #[OrgPermission(module: '', action: 'list', icon: '', alias: '', url: '', sort: 0, app: '')]
     public function list(): array
     {
         $post = validateForm(%CLASS%Request::class, 'list', %CLASS%::class);
@@ -66,7 +66,7 @@ class %CLASS%Controller extends AbstractController
 
     #[PostMapping(path: '%ROUTER%')]
     #[RateRequest]
-    #[OrgPermission(module: '', action: 'curd:新增-add')]
+    #[OrgPermission(module: '', action: 'add')]
     public function add(): array
     {
         return self::editHandle();
@@ -74,7 +74,7 @@ class %CLASS%Controller extends AbstractController
 
     #[PutMapping(path: '%ROUTER%/{id:\d+}')]
     #[RateRequest(rateKey: 'id')]
-    #[OrgPermission(module: '', action: 'curd:编辑-edit')]
+    #[OrgPermission(module: '', action: 'edit')]
     public function edit(?int $id): array
     {
         return self::editHandle($id);
@@ -104,6 +104,7 @@ class %CLASS%Controller extends AbstractController
     }
 
     #[GetMapping(path: '%ROUTER%/{id:\d+}')]
+    #[OrgPermission(module: '', action: 'detail')]
     public function detail(int $id): array
     {
         $get = validateForm(%CLASS%Request::class, 'detail', %CLASS%::class);
@@ -120,7 +121,7 @@ class %CLASS%Controller extends AbstractController
 
     #[DeleteMapping(path: '%ROUTER%/{id:\d+}')]
     #[RateRequest(rateKey: 'id')]
-    #[OrgPermission(module: '', action: 'curd:删除-delete')]
+    #[OrgPermission(module: '', action: 'delete')]
     public function delete(int $id): array
     {
         $get = validateForm(%CLASS%Request::class, 'delete', %CLASS%::class);

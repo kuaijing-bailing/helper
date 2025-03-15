@@ -45,9 +45,15 @@ enum OrgPermissionCurdI18n: int  implements EnumI18nInterface
     #[EnumI18n(txt: '字典设置', i18nTxt: ['en' => 'Dict', 'zh_tw' => '字典設定', 'zh_hk' => '字典設定', 'ja' => '辞書設定'])]
     case DICT = 8;
 
-    #[EnumI18n(txt: '审批流设置', i18nTxt: ['en' => 'Approval', 'zh_tw' => '審批流設定', 'zh_hk' => '審批流設定', 'ja' => '承認フロー設定'])]
+    #[EnumI18n(txt: '审批流设置', i18nTxt: ['en' => 'Approval Setting', 'zh_tw' => '審批流設定', 'zh_hk' => '審批流設定', 'ja' => '承認フロー設定'])]
     case APPROVAL = 9;
 
     #[EnumI18n(txt: '变更状态', i18nTxt: ['en' => 'Change Status', 'zh_tw' => '變更狀態', 'zh_hk' => '變更狀態', 'ja' => 'ステータスを変更する'])]
     case CHANGE_STATUS = 10;
+
+    #[EnumI18n(txt: '排序', i18nTxt: ['en' => 'Change Sort', 'zh_tw' => '排序', 'zh_hk' => '排序', 'ja' => 'ソートを変更する'])]
+    case CHANGE_SORT = 11;
+
+    #[EnumI18n(txt: '编码规则', i18nTxt: ['en' => 'Number Rule', 'zh_tw' => '編碼規則', 'zh_hk' => '編碼規則', 'ja' => '番号のルール'])]
+    case NUMBER_RULE = 12;
 }
