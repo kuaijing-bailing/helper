@@ -72,7 +72,7 @@ class WorkApprovalController
         $isInit = true;
         foreach ($list as $item) {
             // 是否已经初始化过
-            $initConfig = OrgConfigHelper::getConfig($nowAdmin->org_id, $item['alias']);
+            $initConfig = OrgConfigHelper::getConfig($nowAdmin->org_id, 'approval_' . $item['alias']);
             if (! empty($initConfig)) {
                 $initConfig = Json::decode($initConfig);
                 if (! empty($initConfig['id'])) {
@@ -108,7 +108,7 @@ class WorkApprovalController
         $nowAdmin = contextGet('nowUser');
 
         foreach ($aliasArr as $alias) {
-            $config = OrgConfigHelper::getConfig($nowAdmin->org_id, $alias);
+            $config = OrgConfigHelper::getConfig($nowAdmin->org_id, 'approval_' . $alias);
             if (! empty($config)) {
                 $config = Json::decode($config);
             }

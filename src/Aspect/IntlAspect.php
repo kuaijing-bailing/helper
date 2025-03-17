@@ -88,7 +88,7 @@ class IntlAspect extends AbstractAspect
                         $tmpNewField = 'i18n_' . $tmpField;
                         if (isset($model->{$tmpField})) {
                             $tmpNumber = (float) getFormatNumber($model->{$tmpField}, $tmpDecimals);
-                            $model->{$tmpNewField} = NumberFormatHelper::getFormatCurrencyArray($tmpNumber, $model->{$tmpCodeField} ?? 'CNY');
+                            $model->{$tmpNewField} = NumberFormatHelper::getFormatCurrencyArray($tmpNumber, $model->{$tmpCodeField} ?? '');
                         }
                     }
                 }

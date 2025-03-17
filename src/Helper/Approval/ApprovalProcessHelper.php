@@ -59,7 +59,7 @@ class ApprovalProcessHelper
                 stdLog()->info('$approvalIds$approvalIds', [$approvalIds]);
                 if (ApiHelper::checkDataOk($approvalIds)) {
                     $tempValue = ['id' => $approvalIds['data']['info']] ?? 0;
-                    OrgConfigHelper::setConfig($orgId, $item, Json::encode($tempValue));
+                    OrgConfigHelper::setConfig($orgId, 'approval_' . $item, Json::encode($tempValue));
                 }
             }
         }
