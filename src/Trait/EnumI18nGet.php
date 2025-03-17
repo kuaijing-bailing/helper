@@ -78,7 +78,7 @@ trait EnumI18nGet
 
     /**
      * 获取i18n的组装内容，用于返回.
-     * @param array $i18nParam i18n参数
+     * @param array $i18nParams i18n参数
      */
     public function genI18nTxt(array $i18nParams = [], bool $returnNowLang = false, string $language = ''): array|string
     {
