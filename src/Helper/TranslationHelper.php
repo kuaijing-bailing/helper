@@ -92,8 +92,9 @@ class TranslationHelper
      * @param int|string $dataId 数据ID
      * @param array $value 多语言内容
      * @param bool $isCover 是否覆盖原有内容
+     * @param bool $isUserChange 用户操作修改
      */
-    public static function saveTranslation(int $orgId, string $tableField, int|string $dataId, array $value, bool $isCover = true): bool
+    public static function saveTranslation(int $orgId, string $tableField, int|string $dataId, array $value, bool $isCover = true, bool $isUserChange = false): bool
     {
         // 没开启国际化，则直接返回成功
         if (! cfg('open_internationalize')) {
@@ -123,6 +124,20 @@ class TranslationHelper
             }
         }
         $translation->value = $newValue;
+
+        // 获取改变的字段，i18n开头的不算改变，如果用户保存，且有改变字段，则设置为1
+        if ($isUserChange) {
+            $translationDirty = $translation->getDirty();
+            foreach ($translationDirty as $key => $item) {
+                if (str_starts_with($key, 'i18n_')) {
+                    unset($translationDirty[$key]);
+                }
+            }
+            if (!empty($translationDirty)) {
+                stdLog()->info('saveTranslation dirty', $translationDirty);
+                $translation->is_changed = 1;
+            }
+        }
 
         if (! $translation->save()) {
             return false;
