@@ -88,7 +88,7 @@ trait EnumI18nGet
             $nowLang = I18nHelper::getNowLang($language);
             $txt = $txtArr['i18nTxt'][$nowLang] ?? $txtArr['txt'];
             foreach ($i18nParams as $key => $value) {
-                $txt = str_replace(sprintf('{%s}', $key), $value, $txt);
+                $txt = str_replace(sprintf('{%s}', $key), (string) $value, $txt);
             }
             return $txt;
         }

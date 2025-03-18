@@ -69,7 +69,7 @@ class TranslationSavedListener implements ListenerInterface
                 foreach ($tableI18nConfig['i18n'] as $item) {
                     $tmpKey = 'i18n_' . $item;
                     if (! empty($requestData[$tmpKey])) {
-                        TranslationHelper::saveTranslation(! empty($model->org_id) ? $model->org_id : 0, $table . '_' . $item, $model->{$relationField}, $requestData[$tmpKey], false, true);
+                        TranslationHelper::saveTranslation(! empty($model->org_id) ? $model->org_id : 0, $table . '_' . $item, $model->{$relationField}, $requestData[$tmpKey], true, true);
                     }
                 }
             }

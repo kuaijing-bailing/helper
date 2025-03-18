@@ -108,7 +108,7 @@ trait EnumCodeGet
             $nowLang = I18nHelper::getNowLang($language);
             $msg = $msgArr['i18nMsg'][$nowLang] ?? $msgArr['msg'];
             foreach ($i18nParam as $key => $value) {
-                $msg = str_replace(sprintf('{%s}', $key), $value, $msg);
+                $msg = str_replace(sprintf('{%s}', $key), (string) $value, $msg);
             }
             return $msg;
         }
@@ -116,7 +116,7 @@ trait EnumCodeGet
         // 替换 i18n 的参数
         if (! empty($i18nParam)) {
             foreach ($i18nParam as $key => $value) {
-                $msgArr['msg'] = str_replace(sprintf('{%s}', $key), $value, $msgArr['msg']);
+                $msgArr['msg'] = str_replace(sprintf('{%s}', $key), (string) $value, $msgArr['msg']);
             }
         }
 
