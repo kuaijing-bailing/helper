@@ -53,6 +53,21 @@ class ApprovalProcessHelper
                     if (empty($newForm)) {
                         continue;
                     }
+
+                    // 统一添加上 setting 字段
+                    foreach ($newForm as &$formItem) {
+                        if (!isset($formItem['setting'])) {
+                            $formItem['setting'] = [];
+                        }
+                        if ($formItem['type'] == 'detail') {
+                            foreach ($formItem['formList'] as &$detailItem){
+                                if (!isset($detailItem['setting'])) {
+                                    $detailItem['setting'] = [];
+                                }
+                            }
+                        }
+                    }
+
                     BailingApprovalModule::query()->where(['id' => $item['id']])->update([
                         'form' => Json::encode($newForm),
                         'form_version' => $newVersion,
