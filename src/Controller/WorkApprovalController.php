@@ -63,14 +63,11 @@ class WorkApprovalController
         }
         $nowAdmin = contextGet('nowUser');
 
-        $approvalResult = ApprovalProcessHelper::getApprovalModuleList($alias);
-        $list = [];
-        if (ApiHelper::checkDataOk($approvalResult)) {
-            $list = $approvalResult['data']['list'];
-        }
+        $approvalResult = ApprovalProcessHelper::getApprovalModuleList($alias, $nowAdmin->org_id);
+
         $result = [];
         $isInit = true;
-        foreach ($list as $item) {
+        foreach ($approvalResult as $item) {
             // 是否已经初始化过
             $initConfig = OrgConfigHelper::getConfig($nowAdmin->org_id, 'approval_' . $item['alias']);
             if (! empty($initConfig)) {

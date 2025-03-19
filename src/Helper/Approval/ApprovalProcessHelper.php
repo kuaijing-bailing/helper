@@ -23,19 +23,46 @@ use Hyperf\Database\Schema\Schema;
 
 class ApprovalProcessHelper
 {
-    public static function getApprovalModuleList(string $alias): array
+    public static function getApprovalModuleList(string $alias, int $orgId): array
     {
         // 获取和参数在同一分类中的列表
         $exist = BailingApprovalModule::query()->where('alias', $alias)->first();
-        $list = [];
-        if ($exist) {
-            if ($exist->sub_cat_alias) {
-                $list = BailingApprovalModule::query()->where('sub_cat_alias', $exist->sub_cat_alias)->get()->toArray();
-            } else {
-                $list = BailingApprovalModule::query()->where('source_type', $exist->source_type)->get()->toArray();
+        if(empty($exist)){
+            return [];
+        }
+
+        if ($exist->sub_cat_alias) {
+            $list = BailingApprovalModule::query()->where('sub_cat_alias', $exist->sub_cat_alias)->get()->toArray();
+        } else {
+            $list = BailingApprovalModule::query()->where('source_type', $exist->source_type)->get()->toArray();
+        }
+
+        // 判断form表单的版本号是否有变化
+        if (!empty($list)) {
+            $config = config('approval');
+            foreach ($list as $item) {
+                $approvalService = container()->get($config[$item['alias']]);
+                if (!property_exists($approvalService, 'version')) {
+                    continue;
+                }
+
+                // 如果版本号有变化，则删除缓存
+                $newVersion = $approvalService->version ?? 0;
+                if (!empty($newVersion) && $newVersion > $item['form_version']) {
+                    $newForm = $approvalService->approveForm($item['alias']);
+                    if (empty($newForm)) {
+                        continue;
+                    }
+                    BailingApprovalModule::query()->where(['id' => $item['id']])->update([
+                        'form' => Json::encode($newForm),
+                        'form_version' => $newVersion,
+                    ]);
+                    OrgConfigHelper::setConfig($orgId, 'approval_' . $item['alias'], '');
+                }
             }
         }
-        return ApiHelper::genSuccessData(['list' => $list]);
+
+        return $list;
     }
 
     public static function initProcess(int $orgId, int $uid, string $alias, array $initData): array
@@ -69,7 +96,7 @@ class ApprovalProcessHelper
     /**
      * 创建表.
      */
-    #[Cacheable(prefix: 'bailingApprovalModule', ttl: 86400)]
+    #[Cacheable(prefix: 'bailingApprovalModule-v2', ttl: 86400)]
     public static function createTable(): string
     {
         self::createTableCode();
@@ -139,6 +166,11 @@ class ApprovalProcessHelper
                 $table->json('i18n_sub_cat_type')->nullable()->comment('子分类名称多语言')->after('sub_cat_type');
             });
         }
+        if (! Schema::hasColumn('bailing_approval_module', 'form_version')) {
+            Schema::table('bailing_approval_module', function (Blueprint $table) {
+                $table->integer('form_version')->default(0)->comment('form表单的版本号')->after('form');
+            });
+        }
 
         return true;
     }
@@ -179,5 +211,48 @@ class ApprovalProcessHelper
         }
 
         return true;
+    }
+
+    /**
+     * 替换审批表单模板.
+     * @param string $alias
+     * @param array $formValue
+     * @return array
+     * @throws \Psr\Container\ContainerExceptionInterface
+     * @throws \Psr\Container\NotFoundExceptionInterface
+     */
+    public static function replaceFormTemplate(string $alias, array $formValue): array
+    {
+        $config = config('approval');
+        $approvalService = container()->get($config[$alias]);
+        $newForm = $approvalService->approveForm($alias);
+        if (empty($newForm)) {
+            throw new \Exception('approval form return empty');
+        }
+        foreach ($newForm as &$item) {
+            $value = $formValue[$item['key']] ?? '';
+            if (empty($value)) {
+                $item['value'] = '';
+                continue;
+            }
+
+            // 如果参数需要自定义一些参数，则合并参数。例如设置 show_value
+            if (is_array($value) && !empty($value['value'])) {
+                // 如果存在 setting 设置参数，则优先合并掉两者的setting
+                if (!empty($value['setting'])) {
+                    if(!empty($item['setting'])){
+                        $item['setting'] = array_merge($item['setting'], $value['setting']);
+                    } else {
+                        $item['setting'] = $value['setting'];
+                    }
+                    unset($value['setting']);
+                }
+                $item = array_merge($item, $value);
+            } else {
+                $item['value'] = $value;
+            }
+
+        }
+        return $newForm;
     }
 }

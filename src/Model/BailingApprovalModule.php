@@ -23,6 +23,7 @@ use Carbon\Carbon;
  * @property string $alias 审批的别名字符串
  * @property int $approval_type 0审批1是租客审批应用
  * @property string $form 表单
+ * @property int $form_version 表单版本号
  * @property string $source_type 添加模板的应用/模块名称别名
  * @property string $source_txt 添加模板的应用/模块名称
  * @property string $i18n_source_txt 添加模板的应用/模块名称多语言
@@ -53,5 +54,5 @@ class BailingApprovalModule extends Model
     /**
      * The attributes that should be cast to native types.
      */
-    protected array $casts = ['id' => 'integer', 'approval_type' => 'integer', 'start_user_type' => 'integer', 'created_at' => 'datetime', 'updated_at' => 'datetime', 'form' => 'array', 'i18n_name' => 'array', 'i18n_desc' => 'array'];
+    protected array $casts = ['id' => 'integer', 'approval_type' => 'integer', 'form_version' => 'integer', 'start_user_type' => 'integer', 'created_at' => 'datetime', 'updated_at' => 'datetime', 'form' => 'array', 'i18n_name' => 'array', 'i18n_desc' => 'array'];
 }

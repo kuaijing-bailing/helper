@@ -56,8 +56,8 @@ class MainWorkerStartListener implements ListenerInterface
         I18nTranslationHelper::createTable();
 
         // 初始化审批流程表
-        ApprovalProcessHelper::createTable();
         ApprovalProcessHelper::createCategoryTable();
+        ApprovalProcessHelper::createTable();
 
         // 生产环境，执行下 preStart，初始下sql语句
         if (! isDevEnv()) {
