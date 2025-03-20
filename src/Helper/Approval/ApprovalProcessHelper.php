@@ -249,7 +249,12 @@ class ApprovalProcessHelper
             throw new \Exception('approval form return empty');
         }
 
-        return self::replaceFormTemplateDo($newForm, $formValue);
+        stdLog()->info('replaceFormTemplate before', ['alias' => $alias, 'formValue' => $formValue]);
+
+        $result = self::replaceFormTemplateDo($newForm, $formValue);
+        stdLog()->info('replaceFormTemplate before', ['$newForm' => $newForm]);
+
+        return $result;
     }
 
     public static function replaceFormTemplateDo(array $newForm, array $formValue): array
