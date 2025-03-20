@@ -41,6 +41,10 @@ class ApprovalProcessHelper
         if (!empty($list)) {
             $config = config('approval');
             foreach ($list as $item) {
+                // 如果approval数组中不包含，则跳过
+                if (empty($config[$item['alias']])) {
+                    continue;
+                }
                 $approvalService = container()->get($config[$item['alias']]);
                 if (!property_exists($approvalService, 'version')) {
                     continue;
@@ -244,6 +248,12 @@ class ApprovalProcessHelper
         if (empty($newForm)) {
             throw new \Exception('approval form return empty');
         }
+
+        return self::replaceFormTemplateDo($newForm, $formValue);
+    }
+
+    public static function replaceFormTemplateDo(array $newForm, array $formValue): array
+    {
         foreach ($newForm as &$item) {
             $value = $formValue[$item['key']] ?? '';
             if (empty($value)) {
@@ -251,11 +261,30 @@ class ApprovalProcessHelper
                 continue;
             }
 
-            // 如果参数需要自定义一些参数，则合并参数。例如设置 show_value
-            if (is_array($value) && !empty($value['value'])) {
+            // 优先处理明细/表格，如果参数需要自定义一些参数，则合并参数。例如设置 show_value
+            if ($item['type'] == 'detail') {
+                if (!isset($value['value'])) {
+                    throw new \Exception('明细/表格必须有value属性');
+                }
+                foreach ($value['value'] as $tableValue) {
+                    $item['value'][] = self::replaceFormTemplateDo($item['formList'], $tableValue);
+                }
+                unset($value['value']);
+
                 // 如果存在 setting 设置参数，则优先合并掉两者的setting
                 if (!empty($value['setting'])) {
-                    if(!empty($item['setting'])){
+                    if (!empty($item['setting'])) {
+                        $item['setting'] = array_merge($item['setting'], $value['setting']);
+                    } else {
+                        $item['setting'] = $value['setting'];
+                    }
+                    unset($value['setting']);
+                }
+                $item = array_merge($item, $value);
+            } else if (is_array($value) && !empty($value['value'])) {
+                // 如果是数组，存在 setting 设置参数，则优先合并掉两者的setting
+                if (!empty($value['setting'])) {
+                    if (!empty($item['setting'])) {
                         $item['setting'] = array_merge($item['setting'], $value['setting']);
                     } else {
                         $item['setting'] = $value['setting'];
@@ -266,7 +295,6 @@ class ApprovalProcessHelper
             } else {
                 $item['value'] = $value;
             }
-
         }
         return $newForm;
     }
