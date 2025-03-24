@@ -11,6 +11,7 @@ declare(strict_types=1);
 namespace Bailing\Controller;
 
 use Bailing\Helper\ApiHelper;
+use Bailing\Helper\ConfigHelper;
 use Bailing\Helper\TranslationHelper;
 use Bailing\Middleware\SystemMiddleware;
 use Bailing\Model\BailingTranslation;
@@ -42,7 +43,13 @@ class TranslationController
                 ],
             ];
         }
-        $list = buildFormSearchQuery(BailingTranslation::query(), $post['filters'], $post['sorts'])->where(['org_id' => 0])->paginate((int) ($post['pageSize'] ?? 20))->toArray();
+        $list = buildFormSearchQuery(BailingTranslation::query(), $post['filters'], $post['sorts']);
+
+        if(ConfigHelper::systemManyOrg()){
+            $list->where(['org_id' => 0]);
+        }
+
+        $list = $list->paginate((int) ($post['pageSize'] ?? 20))->toArray();
 
         return ApiHelper::genSuccessData(genListData($list));
     }

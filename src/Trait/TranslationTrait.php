@@ -90,7 +90,7 @@ trait TranslationTrait
     /**
      * 保存多语言内容.
      */
-    public static function saveTranslation(int $orgId, string $field, int|string $dataId, array $value, bool $isCover = true): bool
+    public static function saveTranslation(int $orgId, string $field, int|string $dataId, array $value, bool $isCover = true, bool $isUserChange = false): bool
     {
         $tableName = (new self())->getTable();
 
@@ -104,7 +104,7 @@ trait TranslationTrait
             }
         }
 
-        return TranslationHelper::saveTranslation($orgId, $tableName . '_' . $field, $dataId, $value, $isCover);
+        return TranslationHelper::saveTranslation($orgId, $tableName . '_' . $field, $dataId, $value, $isCover, $isUserChange);
     }
 
     /**
