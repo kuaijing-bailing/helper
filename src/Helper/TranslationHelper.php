@@ -37,7 +37,7 @@ class TranslationHelper
                 $table->string('table_field', 150)->nullable()->comment('数据表表名和字段名')->index('idx_table_field');
                 $table->string('data_id', 50)->nullable()->comment('数据表的关联参数，一般为ID')->index('idx_data_id');
                 $table->json('value')->nullable()->comment('多语言的值');
-                $table->tinyInteger('is_changed')->default(0)->comment('是否在后台修改过，如果没修改，程序则会自动更新')->after('value');
+                $table->tinyInteger('is_changed')->default(0)->comment('是否在后台修改过，如果没修改，程序则会自动更新');
                 $table->timestamps();
                 $table->comment('国际化内容表');
             });
