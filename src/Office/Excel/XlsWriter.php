@@ -76,24 +76,24 @@ class XlsWriter extends Excel implements ExcelPropertyInterface
                     $tmp[$tmpProperty['name']] = $value;
 
                     // 判断必填字段
-                    if (empty($errorMsg) && $tmpProperty['required'] && empty($value)) {
+                    if (empty($errorMsg) && $tmpProperty['required'] && $value === '') {
                         $errorMsg = CommonCode::PARAMS_EMPTY_WITH_FIELD->genI18nMsg(['field' => $tmpProperty['value']], true, $this->nowLang);
                     }
 
                     // 判断字典值
-                    if (! empty($tmpProperty['dictNameArr'])) {
+                    if (empty($errorMsg) && ! empty($tmpProperty['dictNameArr'])) {
                         if (in_array($value, $tmpProperty['dictNameArr'])) {
                             $tmp[$tmpProperty['name']] = array_search($value, $tmpProperty['dictNameArr']);
-                        } elseif (empty($errorMsg) && $tmpProperty['required']) {
+                        } elseif ($tmpProperty['required']) {
                             $errorMsg = CommonCode::PARAMS_WRONG_WITH_FIELD->genI18nMsg(['field' => $tmpProperty['value']], true, $this->nowLang);
                         }
                     }
 
                     // 判断字典数组
-                    if (! empty($tmpProperty['dictData'])) {
+                    if (empty($errorMsg) && ! empty($tmpProperty['dictData'])) {
                         if (in_array($value, $tmpProperty['dictData'])) {
                             $tmp[$tmpProperty['name']] = array_search($value, $tmpProperty['dictData']);
-                        } elseif (empty($errorMsg) && $tmpProperty['required']) {
+                        } elseif ($tmpProperty['required']) {
                             $errorMsg = CommonCode::PARAMS_WRONG_WITH_FIELD->genI18nMsg(['field' => $tmpProperty['value']], true, $this->nowLang);
                         }
                     }
