@@ -14,6 +14,7 @@ use Bailing\Helper\ApiHelper;
 use Bailing\Helper\Intl\I18nTranslationHelper;
 use Bailing\Middleware\SystemMiddleware;
 use Bailing\Model\BailingI18nTranslation;
+use Hyperf\Database\Model\Builder;
 use Hyperf\HttpServer\Annotation\Controller;
 use Hyperf\HttpServer\Annotation\Middleware;
 use Hyperf\HttpServer\Annotation\PostMapping;
@@ -42,7 +43,21 @@ class I18nTranslationController
                 ],
             ];
         }
-        $list = buildFormSearchQuery(BailingI18nTranslation::query(), $post['filters'], $post['sorts'])->paginate((int) ($post['pageSize'] ?? 20))->toArray();
+
+        $customFields = [];
+        $list = buildFormSearchQuery(BailingI18nTranslation::query(), $post['filters'], $post['sorts'], $customFields);
+
+        if (!empty($customFields)) {
+            foreach ($customFields as $key => $value) {
+                if ($key == 'keywords') {
+                    $list->where(function (Builder $query) use ($value) {
+                        $query->where('value_zh_cn', 'like', '%' . $value . '%')->orWhere('value->zh_cn', 'like', '%' . $value . '%')->orWhere('value->'. cfg('lang_default'), 'like', '%' . $value . '%');
+                    });
+                }
+            }
+        }
+
+        $list = $list->paginate((int) ($post['pageSize'] ?? 20))->toArray();
 
         return ApiHelper::genSuccessData(genListData($list));
     }
