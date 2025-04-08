@@ -15,6 +15,7 @@ use Bailing\Helper\ConfigHelper;
 use Bailing\Helper\TranslationHelper;
 use Bailing\Middleware\SystemMiddleware;
 use Bailing\Model\BailingTranslation;
+use Hyperf\Database\Model\Builder;
 use Hyperf\HttpServer\Annotation\Controller;
 use Hyperf\HttpServer\Annotation\Middleware;
 use Hyperf\HttpServer\Annotation\PostMapping;
@@ -43,7 +44,19 @@ class TranslationController
                 ],
             ];
         }
-        $list = buildFormSearchQuery(BailingTranslation::query(), $post['filters'], $post['sorts']);
+
+        $customFields = [];
+        $list = buildFormSearchQuery(BailingTranslation::query(), $post['filters'], $post['sorts'], $customFields);
+
+        if (!empty($customFields)) {
+            foreach ($customFields as $key => $value) {
+                if ($key == 'keywords') {
+                    $list->where(function (Builder $query) use ($value) {
+                        $query->where('value->zh_cn', 'like', '%' . $value . '%')->orWhere('value->'. cfg('lang_default'), 'like', '%' . $value . '%');
+                    });
+                }
+            }
+        }
 
         if(ConfigHelper::systemManyOrg()){
             $list->where(['org_id' => 0]);
