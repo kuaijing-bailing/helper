@@ -138,7 +138,6 @@ trait EnumI18nGet
                 'group' => [
                     'groupCode' => $classObj->groupCode,
                 ],
-                'reported' => !empty($langList[$case->value]), // 曾经上报保存过多语言
             ];
             $caseArr['i18nKey'] = 'i18n.' . env('APP_NAME') . '.' . $caseArr['group']['groupCode'] . '.' . $caseArr['value'];
 
