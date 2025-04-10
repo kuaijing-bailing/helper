@@ -143,6 +143,7 @@ class OperationLogMiddleware implements MiddlewareInterface
                     'id' => $jwtData->id,
                     'name' => $jwtData->name ?? '',
                     'phone' => $jwtData->phone ?? '',
+                    'email' => $jwtData->email ?? '',
                     'org_id' => $jwtData->org_id ?? 0,
                     'origin' => strtolower($keyLabel),
                 ];
