@@ -78,21 +78,28 @@ abstract class Excel
                 $startIndex = count($this->annotationMate['_p']) - 1;
                 foreach ($extraData as $key => $value) {
                     ++$startIndex;
-                    $dataObj = new ExcelProperty(
-                        value: $value['fields_name'],
-                        index: $startIndex,
-                        demo: $value['fields_demo'] ?? '',
-                        tip: $value['fields_tip'] ?? '',
-                        i18nValue: $value['i18n_fields_name']['i18n_value'] ?? [],
-                        i18nDemo: $value['i18n_fields_demo']['i18n_value'] ?? [],
-                        i18nTip: $value['i18n_fields_tip']['i18n_value'] ?? [],
-                        width: 20,
-                        align: 'left',
-                        required: (bool) $value['fill'],
-                        dictName: $value['dictName'] ?? '',
-                        dictData: $value['dictData'] ?? [],
-                    );
-                    $this->annotationMate['_p'][$value['key']][self::ANNOTATION_NAME] = $dataObj;
+                    if (empty($this->annotationMate['_p'][$value['key']][self::ANNOTATION_NAME])) {
+                        $dataObj = new ExcelProperty(
+                            value: $value['fields_name'],
+                            index: $startIndex,
+                            demo: $value['fields_demo'] ?? '',
+                            tip: $value['fields_tip'] ?? '',
+                            i18nValue: $value['i18n_fields_name']['i18n_value'] ?? [],
+                            i18nDemo: $value['i18n_fields_demo']['i18n_value'] ?? [],
+                            i18nTip: $value['i18n_fields_tip']['i18n_value'] ?? [],
+                            width: 20,
+                            align: 'left',
+                            required: (bool) $value['fill'],
+                            dictName: $value['dictName'] ?? '',
+                            dictData: $value['dictData'] ?? [],
+                        );
+                        $this->annotationMate['_p'][$value['key']][self::ANNOTATION_NAME] = $dataObj;
+                    } else {
+                        // 业户人员导入判断手机号必填还是邮箱必填，可以拓展为其他字段的必填属性
+                        if (isset($value['required'])) {
+                            $this->annotationMate['_p'][$value['key']][self::ANNOTATION_NAME]->required = $value['required'];
+                        }
+                    }
                 }
             }
         }

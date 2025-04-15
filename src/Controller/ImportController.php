@@ -47,7 +47,7 @@ class ImportController
             dto: $cacheResultArr['dto'],
             filename: $cacheResultArr['filename'] . '-' . DateTimeHelper::getFormatDate(time()),
             closure: $cacheResultArr['data'] ?? [],
-            orgId: $cacheResultArr['org_id'],
+            orgId: $cacheResultArr['org_id']
         );
     }
 }
