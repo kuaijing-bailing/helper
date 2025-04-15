@@ -15,7 +15,6 @@ use Bailing\Annotation\EnumI18nGroup;
 use Bailing\Helper\EnumStore;
 use Bailing\Helper\Intl\I18nHelper;
 use Bailing\Model\BailingI18nTranslation;
-use Hyperf\Contract\TranslatorInterface;
 use ReflectionEnum;
 use ReflectionEnumUnitCase;
 
@@ -109,7 +108,8 @@ trait EnumI18nGet
         return self::getEnums()[$this->name]['group']['groupCode'] ?? null;
     }
 
-    public static function getEnums(): array
+    // onlyCode 仅从代码中读取，一般是项目启动读取上报为 true，此时不写入内存，后续正式使用时使用数据库的
+    public static function getEnums($onlyCode = false): array
     {
         $enum = new ReflectionEnum(static::class);
         if (EnumStore::isset($enum->getName())) {
@@ -119,12 +119,13 @@ trait EnumI18nGet
         $classObj = self::getEnumClassAttitude();
 
         // 读取该分组下所有的多语言，以data_id作为键，value作为内容
-        if (cfg('open_internationalize')) {
+        if (!$onlyCode && cfg('open_internationalize')) {
             $langList = BailingI18nTranslation::query()->where(['type' => 0, 'group_code' => $classObj->groupCode])->pluck('value', 'data_id')->toArray();
         } else {
             $langList = [];
         }
 
+        $caseAll = [];
         foreach ($enumCases as $enumCase) {
             /** @var self $case */
             $case = $enumCase->getValue();
@@ -141,9 +142,17 @@ trait EnumI18nGet
             ];
             $caseArr['i18nKey'] = 'i18n.' . env('APP_NAME') . '.' . $caseArr['group']['groupCode'] . '.' . $caseArr['value'];
 
-            EnumStore::set($enum->getName(), $case->name, $caseArr);
+            $caseAll[$case->name] = $caseArr;
         }
 
+        // 仅获取代码的，一般是项目启动读取上报为 true，此时不写入内存，后续正式使用时使用数据库的
+        if ($onlyCode) {
+            return $caseAll;
+        }
+
+        foreach ($caseAll as $key => $value) {
+            EnumStore::set($enum->getName(), $key, $value);
+        }
         return EnumStore::get($enum->getName());
     }
 
