@@ -111,6 +111,8 @@ class Application
         $requestType = HttpEmun::POST;
 
         $paramStr = json_encode($signData);
+        self::ESignDebugV3('基于文件发起签署接口调用成功，请求参数：');
+        self::ESignDebugV3($paramStr);
 
         $signAndBuildSignAndJsonHeader = EsignHttpHelper::signAndBuildSignAndJsonHeader($config['eSignAppId'], $config['eSignAppSecret'], $paramStr, $requestType, $apiaddr);
 
@@ -322,12 +324,8 @@ class Application
         $requestType = HttpEmun::POST;
 
         $filename = basename($filePath);
-        $filesize = ! empty(filesize($filePath)) ? filesize($filePath) : '';
+        $filesize = strlen(file_get_contents($filePath));
 
-        if (empty($filesize)) {
-            $fileContent = file_get_contents($filePath);
-            $filesize = strlen($fileContent);
-        }
         $data = [
             'contentMd5' => EsignUtilHelper::getContentBase64Md5($filePath),
             'contentType' => 'application/pdf',
@@ -366,7 +364,7 @@ class Application
     {
         $config = self::$config;
 
-        $apiAddr = sprintf('/v3/organizations/identity-info?orgIDCardNum=%s', $nameOrg);
+        $apiAddr = sprintf('/v3/organizations/identity-info?orgName=%s', urlencode($nameOrg));
         $requestType = HttpEmun::GET;
         //生成签名验签+json体的header
 
