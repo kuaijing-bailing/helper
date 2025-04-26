@@ -15,6 +15,7 @@ use Bailing\Helper\HttpHelper;
 use Hyperf\Codec\Json;
 use Hyperf\Command\Annotation\Command;
 use Hyperf\Command\Command as HyperfCommand;
+use Symfony\Component\Console\Input\InputOption;
 
 #[Command]
 class DevGetComposerCommand extends HyperfCommand
@@ -67,6 +68,6 @@ class DevGetComposerCommand extends HyperfCommand
 
         copy($composerUnzipDir . '/composer.lock', BASE_PATH . '/composer.lock');
         FileHelper::delDir(BASE_PATH . '/vendor');
-        copy($composerUnzipDir . '/vendor', BASE_PATH . '/vendor');
+        FileHelper::copyDir($composerUnzipDir . '/vendor', BASE_PATH . '/vendor');
     }
 }
