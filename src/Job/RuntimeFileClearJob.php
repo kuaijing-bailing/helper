@@ -10,10 +10,8 @@ declare(strict_types=1);
  */
 namespace Bailing\Job;
 
-use App\Event\OrgBillApproved;
 use Bailing\Annotation\XxlJobTask;
 use Bailing\Event\RuntimeFileClear;
-use Bailing\Event\RuntimeFileClearEvent;
 use Bailing\Helper\FileHelper;
 use Hyperf\Di\Annotation\Inject;
 use Hyperf\XxlJob\Annotation\XxlJob;
