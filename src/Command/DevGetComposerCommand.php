@@ -49,8 +49,8 @@ class DevGetComposerCommand extends HyperfCommand
         $this->line('开始下载composer包!', 'info');
         $localPath = BASE_PATH . '/runtime/composer.zip';
         $composerUnzipDir = BASE_PATH . '/runtime/composer';
-        unlink($localPath);
-        FileHelper::delDir($composerUnzipDir);
+        file_exists($localPath) && @unlink($localPath);
+        file_exists($composerUnzipDir) && FileHelper::delDir($composerUnzipDir);
         HttpHelper::downloadFile('http://' . $ip . '/downloadComposer.php?version=' . $bailingVersion . '&app_name=' . env('APP_NAME'), $localPath);
 
         if (! file_exists($localPath)) {
