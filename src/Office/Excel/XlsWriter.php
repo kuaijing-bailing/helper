@@ -50,7 +50,7 @@ class XlsWriter extends Excel implements ExcelPropertyInterface
 
             // 统一设置为字符串类型
             $setTypeArr = [];
-            for($i = 0;$i < count($this->property); $i++){
+            for ($i = 0; $i < count($this->property); ++$i) {
                 $setTypeArr[] = \Vtiful\Kernel\Excel::TYPE_STRING;
             }
             $data = $xlsxObject->openFile($tempFileName)->openSheet()->setType($setTypeArr)->getSheetData();
@@ -292,7 +292,7 @@ class XlsWriter extends Excel implements ExcelPropertyInterface
             $validation = $validation->validationType(Validation::TYPE_LIST)->valueList($item);
             $forRows = max(count($exportData), 22);
             $column = $this->getColumnIndex($key);
-            for ($i = 2; $i < $forRows; ++$i) {
+            for ($i = 3; $i < $forRows; ++$i) {
                 $filePath = $filePath->validation($column . $i, $validation->toResource());
             }
         }
