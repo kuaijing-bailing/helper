@@ -29,24 +29,24 @@ class DevGetComposerCommand extends HyperfCommand
     {
         parent::configure();
         $this->setDescription('从局域网电脑快速复制composer包');
-        $this->addOption('ip', 'I', InputOption::VALUE_REQUIRED, '局域网IP地址', '');
+        $this->addOption('ip', 'I', InputOption::VALUE_REQUIRED, 'LAN IP address', '');
     }
 
     public function handle()
     {
         $ip = $this->input->getOption('ip');
         if (empty($ip)) {
-            $this->line('请输入IP地址!', 'error');
+            $this->line('Please enter the LAN IP address!', 'error');
             return;
         }
 
 
-        $this->line('开始判断当前bailing版本!', 'info');
+        $this->line('Start get the current bailing/helper version!', 'info');
         $composerJson = Json::decode(file_get_contents(BASE_PATH . '/composer.json'));
         $bailingVersion = str_replace(['^', '~'], '', $composerJson['require']['bailing/helper']);
 
 
-        $this->line('开始下载composer包!', 'info');
+        $this->line('Start downloading the composer package!', 'info');
         $localPath = BASE_PATH . '/runtime/composer.zip';
         $composerUnzipDir = BASE_PATH . '/runtime/composer';
         file_exists($localPath) && @unlink($localPath);
@@ -58,12 +58,12 @@ class DevGetComposerCommand extends HyperfCommand
         ]);
 
         if (! file_exists($localPath)) {
-            $this->line('文件下载失败，请重试！', 'error');
+            $this->line('File download failed, please try again!', 'error');
             return;
         }
 
 
-        $this->line('开始解压composer包!', 'info');
+        $this->line('Start unpacking the composer package!', 'info');
         $zip = new \ZipArchive();
         if ($zip->open($localPath) === true) {
             $zip->extractTo($composerUnzipDir);
@@ -73,5 +73,7 @@ class DevGetComposerCommand extends HyperfCommand
         copy($composerUnzipDir . '/composer.lock', BASE_PATH . '/composer.lock');
         FileHelper::delDir(BASE_PATH . '/vendor');
         FileHelper::copyDir($composerUnzipDir . '/vendor', BASE_PATH . '/vendor');
+
+        $this->line('Successfully copied the composer package!', 'info');
     }
 }

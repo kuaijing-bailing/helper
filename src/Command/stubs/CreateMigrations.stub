@@ -13,7 +13,7 @@ class DummyClass extends Migration
     {
         Schema::create('DummyTable', function (Blueprint $table) {
             $table->bigIncrements('id');
-            $table->integer('org_id')->index('idx_org_id');
+            $table->integer('org_id')->index();
             // coding in here
 
 

@@ -33,9 +33,9 @@ class TranslationHelper
         if (! Schema::hasTable('bailing_translation')) {
             Schema::create('bailing_translation', function (Blueprint $table) {
                 $table->bigIncrements('id');
-                $table->integer('org_id')->comment('机构ID')->index('idx_org_id');
-                $table->string('table_field', 150)->nullable()->comment('数据表表名和字段名')->index('idx_table_field');
-                $table->string('data_id', 50)->nullable()->comment('数据表的关联参数，一般为ID')->index('idx_data_id');
+                $table->integer('org_id')->comment('机构ID')->index();
+                $table->string('table_field', 150)->nullable()->comment('数据表表名和字段名')->index();
+                $table->string('data_id', 50)->nullable()->comment('数据表的关联参数，一般为ID')->index();
                 $table->json('value')->nullable()->comment('多语言的值');
                 $table->tinyInteger('is_changed')->default(0)->comment('是否在后台修改过，如果没修改，程序则会自动更新');
                 $table->timestamps();

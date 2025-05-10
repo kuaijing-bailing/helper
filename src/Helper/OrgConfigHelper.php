@@ -35,9 +35,9 @@ class OrgConfigHelper
         if (! Schema::hasTable('bailing_org_config')) {
             Schema::create('bailing_org_config', function (Blueprint $table) {
                 $table->bigIncrements('id');
-                $table->integer('org_id')->nullable()->comment('机构ID')->index('idx_org_id');
-                $table->string('index', 100)->nullable()->comment('额外的唯一索引名，例如（项目ID_楼宇ID）')->index('idx_index');
-                $table->string('name', 100)->nullable()->comment('名称')->index('idx_name');
+                $table->integer('org_id')->nullable()->comment('机构ID')->index();
+                $table->string('index', 100)->nullable()->comment('额外的唯一索引名，例如（项目ID_楼宇ID）')->index();
+                $table->string('name', 100)->nullable()->comment('名称')->index();
                 $table->text('value')->nullable()->comment('值');
                 $table->string('remark', 100)->nullable()->comment('备注');
                 $table->timestamps();

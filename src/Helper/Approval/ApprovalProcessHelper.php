@@ -133,7 +133,7 @@ class ApprovalProcessHelper
                 $table->json('desc')->nullable()->comment('审批模板说明');
                 $table->json('i18n_desc')->nullable()->comment('审批模板说明多语言');
                 $table->string('icon')->default('')->comment('审批模板图标地址');
-                $table->string('alias')->default('')->comment('审批的别名字符串')->index('idx_alias');
+                $table->string('alias')->default('')->comment('审批的别名字符串')->index();
                 $table->tinyInteger('approval_type')->default(0)->comment('0审批1是租客审批应用');
                 $table->json('form')->nullable()->comment('审批模板表单');
                 $table->string('source_type')->default('')->comment('添加模板的应用/模块名称别名');
@@ -212,7 +212,7 @@ class ApprovalProcessHelper
                 // coding in here
                 $table->string('name')->default('')->comment('审批类别名称');
                 $table->json('i18n_name')->nullable()->comment('审批类别名称多语言');
-                $table->string('alias')->default('')->comment('审批类别别名')->index('idx_alias');
+                $table->string('alias')->default('')->comment('审批类别别名')->index();
                 $table->string('source_txt')->default('')->comment('添加模板的应用/模块名称');
                 $table->json('i18n_source_txt')->nullable()->comment('添加模板的应用/模块名称多语言');
 
