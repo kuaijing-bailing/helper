@@ -8,7 +8,6 @@ declare(strict_types=1);
  * @document https://help.kuaijingai.com
  * @contact  www.kuaijingai.com 7*12 9:00-21:00
  */
-
 namespace Bailing\Helper\Approval;
 
 use Bailing\Helper\ApiHelper;
@@ -27,7 +26,7 @@ class ApprovalProcessHelper
     {
         // 获取和参数在同一分类中的列表
         $exist = BailingApprovalModule::query()->where('alias', $alias)->first();
-        if(empty($exist)){
+        if (empty($exist)) {
             return [];
         }
 
@@ -38,7 +37,7 @@ class ApprovalProcessHelper
         }
 
         // 判断form表单的版本号是否有变化
-        if (!empty($list)) {
+        if (! empty($list)) {
             $config = config('approval');
             foreach ($list as $item) {
                 // 如果approval数组中不包含，则跳过
@@ -46,13 +45,13 @@ class ApprovalProcessHelper
                     continue;
                 }
                 $approvalService = container()->get($config[$item['alias']]);
-                if (!property_exists($approvalService, 'version')) {
+                if (! property_exists($approvalService, 'version')) {
                     continue;
                 }
 
                 // 如果版本号有变化，则删除缓存
                 $newVersion = $approvalService->version ?? 0;
-                if (!empty($newVersion) && $newVersion > $item['form_version']) {
+                if (! empty($newVersion) && $newVersion > $item['form_version']) {
                     $newForm = $approvalService->approveForm($item['alias']);
                     if (empty($newForm)) {
                         continue;
@@ -60,12 +59,12 @@ class ApprovalProcessHelper
 
                     // 统一添加上 setting 字段
                     foreach ($newForm as &$formItem) {
-                        if (!isset($formItem['setting'])) {
+                        if (! isset($formItem['setting'])) {
                             $formItem['setting'] = [];
                         }
                         if ($formItem['type'] == 'detail') {
-                            foreach ($formItem['formList'] as &$detailItem){
-                                if (!isset($detailItem['setting'])) {
+                            foreach ($formItem['formList'] as &$detailItem) {
+                                if (! isset($detailItem['setting'])) {
                                     $detailItem['setting'] = [];
                                 }
                             }
@@ -234,9 +233,6 @@ class ApprovalProcessHelper
 
     /**
      * 替换审批表单模板.
-     * @param string $alias
-     * @param array $formValue
-     * @return array
      * @throws \Psr\Container\ContainerExceptionInterface
      * @throws \Psr\Container\NotFoundExceptionInterface
      */
@@ -268,7 +264,7 @@ class ApprovalProcessHelper
 
             // 优先处理明细/表格，如果参数需要自定义一些参数，则合并参数。例如设置 show_value
             if ($item['type'] == 'detail') {
-                if (!isset($value['value'])) {
+                if (! isset($value['value'])) {
                     throw new \Exception('明细/表格必须有value属性');
                 }
                 foreach ($value['value'] as $tableValue) {
@@ -277,8 +273,8 @@ class ApprovalProcessHelper
                 unset($value['value']);
 
                 // 如果存在 setting 设置参数，则优先合并掉两者的setting
-                if (!empty($value['setting'])) {
-                    if (!empty($item['setting'])) {
+                if (! empty($value['setting'])) {
+                    if (! empty($item['setting'])) {
                         $item['setting'] = array_merge($item['setting'], $value['setting']);
                     } else {
                         $item['setting'] = $value['setting'];
@@ -286,10 +282,10 @@ class ApprovalProcessHelper
                     unset($value['setting']);
                 }
                 $item = array_merge($item, $value);
-            } else if (is_array($value) && !empty($value['value'])) {
+            } elseif (is_array($value) && ! empty($value['value'])) {
                 // 如果是数组，存在 setting 设置参数，则优先合并掉两者的setting
-                if (!empty($value['setting'])) {
-                    if (!empty($item['setting'])) {
+                if (! empty($value['setting'])) {
+                    if (! empty($item['setting'])) {
                         $item['setting'] = array_merge($item['setting'], $value['setting']);
                     } else {
                         $item['setting'] = $value['setting'];

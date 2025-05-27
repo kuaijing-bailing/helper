@@ -1,16 +1,23 @@
 <?php
 
-
-namespace esign\comm;
+declare(strict_types=1);
 /**
- * esign响应
- * @author  澄泓
+ * This file is part of Kuaijing Bailing.
+ *
+ * @link     https://www.kuaijingai.com
+ * @document https://help.kuaijingai.com
+ * @contact  www.kuaijingai.com 7*12 9:00-21:00
+ */
+namespace esign\comm;
+
+/**
+ * esign响应.
  * @date  2022/08/18 9:51
  */
-
 class EsignResponse
 {
     private $status;
+
     private $body;
 
     /**
@@ -24,12 +31,9 @@ class EsignResponse
         $this->body = $body;
     }
 
-
-
     /**
      * @return mixed
      */
-
     public function getStatus()
     {
         return $this->status;
@@ -58,5 +62,4 @@ class EsignResponse
     {
         $this->body = $body;
     }
-
 }

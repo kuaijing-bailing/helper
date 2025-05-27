@@ -13,9 +13,7 @@ namespace Bailing\Middleware;
 use Bailing\Amqp\Producer\OperationLogProducer;
 use Bailing\Helper\JwtHelper;
 use Bailing\Helper\RequestHelper;
-use Bailing\Helper\StrHelper;
 use Hyperf\Amqp\Producer;
-use Hyperf\Amqp\Result;
 use Hyperf\HttpServer\Contract\RequestInterface;
 use Hyperf\HttpServer\Contract\ResponseInterface as HttpResponse;
 use Psr\Container\ContainerInterface;
@@ -112,7 +110,7 @@ class OperationLogMiddleware implements MiddlewareInterface
         // 如果是不请求的URL，不存
         $filterStr = $operationLog['method'] . ':/' . $operationLog['router'];
         $config = config('log_report');
-        if (!empty($config) && in_array($filterStr, $config)) {
+        if (! empty($config) && in_array($filterStr, $config)) {
             return $result;
         }
 

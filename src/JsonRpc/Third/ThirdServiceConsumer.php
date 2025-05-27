@@ -77,7 +77,7 @@ class ThirdServiceConsumer extends AbstractServiceClient implements ThirdService
         }
     }
 
-     /**
+    /**
      * 获取企业微信信息.
      */
     public function getWorkWechatByOrgId(int $orgId): array

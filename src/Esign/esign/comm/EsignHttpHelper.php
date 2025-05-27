@@ -1,9 +1,17 @@
 <?php
+
+declare(strict_types=1);
+/**
+ * This file is part of Kuaijing Bailing.
+ *
+ * @link     https://www.kuaijingai.com
+ * @document https://help.kuaijingai.com
+ * @contact  www.kuaijingai.com 7*12 9:00-21:00
+ */
 namespace esign\comm;
 
 /**
- * esignHttp请求类
- * @author  澄泓
+ * esignHttp请求类.
  * @date  2022/08/18 15:10
  */
 class EsignHttpHelper
@@ -25,7 +33,7 @@ class EsignHttpHelper
     }
 
     /**
-     * 文件上传
+     * 文件上传.
      * @param $uploadUrls
      * @param $filePath
      * @param $ContenType
@@ -38,9 +46,8 @@ class EsignHttpHelper
         return EsignHttpCfgHelper::upLoadFileHttp($uploadUrls, $contentBase64Md5, $fileContent, $ContenType);
     }
 
-
     /**
-     * 签名计算并且构建一个签名鉴权+json数据的esign请求头
+     * 签名计算并且构建一个签名鉴权+json数据的esign请求头.
      * @param $projectId
      * @param $secret
      * @param $paramStr
@@ -50,31 +57,31 @@ class EsignHttpHelper
      * @param string $contentType
      * @return array
      */
-    public static function signAndBuildSignAndJsonHeader($projectId, $secret, $paramStr, $reqType, $url,$accept="*/*",$contentType="application/json; charset=UTF-8")
+    public static function signAndBuildSignAndJsonHeader($projectId, $secret, $paramStr, $reqType, $url, $accept = '*/*', $contentType = 'application/json; charset=UTF-8')
     {
-        $contentMd5="";
+        $contentMd5 = '';
 
         //get和delete方式请求不能携带body体
-        if (strtoupper($reqType) == "GET" || strtoupper($reqType) == "DELETE") {
-            $paramStr=null;
-        }else{
+        if (strtoupper($reqType) == 'GET' || strtoupper($reqType) == 'DELETE') {
+            $paramStr = null;
+        } else {
             $contentMd5 = EsignUtilHelper::getContentMd5($paramStr);
         }
         //对body体做md5摘要
 
         //构造一个初步请求头
-        $buildSignAndJsonHeader = self::buildSignAndJsonHeader($projectId, $contentMd5, $accept, $contentType, "Signature");
+        $buildSignAndJsonHeader = self::buildSignAndJsonHeader($projectId, $contentMd5, $accept, $contentType, 'Signature');
 
         //对url做排序
         self::querySort($url);
         //传入生成的bodyMd5,加上其他请求头部信息拼接成字符串,整体做sha256签名
-        $reqSignature = EsignUtilHelper::getSignature($secret, $reqType, $accept, $contentType, $contentMd5, "", "", $url);
-        array_push($buildSignAndJsonHeader,"X-Tsign-Open-Ca-Signature:".$reqSignature);
+        $reqSignature = EsignUtilHelper::getSignature($secret, $reqType, $accept, $contentType, $contentMd5, '', '', $url);
+        array_push($buildSignAndJsonHeader, 'X-Tsign-Open-Ca-Signature:' . $reqSignature);
         return $buildSignAndJsonHeader;
-}
+    }
 
     /**
-     * 建一个签名鉴权+json数据的esign初步请求头
+     * 建一个签名鉴权+json数据的esign初步请求头.
      * @param $projectId
      * @param $contentMD5
      * @param $accept
@@ -84,58 +91,57 @@ class EsignHttpHelper
      */
     public static function buildSignAndJsonHeader($projectId, $contentMD5, $accept, $contentType, $authMode)
     {
-        $headers = array(
-            'X-Tsign-Open-App-Id:'.$projectId,
-            'X-Tsign-Open-Ca-Timestamp:'.EsignUtilHelper::getMillisecond(),
-            'Accept:'.$accept,
-            'Content-Type:'.$contentType,
-            'X-Tsign-Open-Auth-Mode:'.$authMode,
-            'X-Tsign-Dns-App-Id:'.$projectId
-        );
-        if(!empty($contentMD5)){
-            array_push($headers,'Content-MD5:'.$contentMD5);
+        $headers = [
+            'X-Tsign-Open-App-Id:' . $projectId,
+            'X-Tsign-Open-Ca-Timestamp:' . EsignUtilHelper::getMillisecond(),
+            'Accept:' . $accept,
+            'Content-Type:' . $contentType,
+            'X-Tsign-Open-Auth-Mode:' . $authMode,
+            'X-Tsign-Dns-App-Id:' . $projectId,
+        ];
+        if (! empty($contentMD5)) {
+            array_push($headers, 'Content-MD5:' . $contentMD5);
         }
         return $headers;
     }
 
-
-    public static function querySort($url,$isEncode=false){
+    public static function querySort($url, $isEncode = false)
+    {
         #存在query参数
-        if (!strpos($url, "?") === false) {
+        if (! strpos($url, '?') === false) {
             $query_arr = [];
-            $url_path = substr($url, 0, strpos($url, "?"));
-            $url_query = substr($url, strpos($url, "?") + 1, mb_strlen($url));
+            $url_path = substr($url, 0, strpos($url, '?'));
+            $url_query = substr($url, strpos($url, '?') + 1, mb_strlen($url));
             parse_str($url_query, $query_arr);
             ksort($query_arr);
             //reset()内部指针指向数组中的第一个元素
             reset($query_arr);
             $query_str = http_build_query($query_arr);
-            if(!$isEncode){
+            if (! $isEncode) {
                 $query_str = urldecode($query_str);
             }
-            $url = $url_path . '?' . $query_str;
-            return $url;
+            return $url_path . '?' . $query_str;
         }
         return $url;
     }
+
     /**
-     * 构造头部信息
+     * 构造头部信息.
      * @param $contentMD5
      * @param $reqSignature
+     * @param mixed $projectId
      * @return array
      */
     public static function buildCommHeader($projectId, $contentMD5, $reqSignature)
     {
-        $headers = array(
+        return [
             'X-Tsign-Open-App-Id:' . $projectId,
             'X-Tsign-Open-Ca-Timestamp:' . EsignUtilHelper::getMillisecond(),
             'Accept:*/*',
             'X-Tsign-Open-Ca-Signature:' . $reqSignature,
             'Content-MD5:' . $contentMD5,
             'Content-Type:application/json; charset=UTF-8',
-            'X-Tsign-Open-Auth-Mode:Signature'
-        );
-        return $headers;
+            'X-Tsign-Open-Auth-Mode:Signature',
+        ];
     }
-
 }

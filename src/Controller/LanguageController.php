@@ -26,7 +26,7 @@ class LanguageController
     #[PutMapping(path: '/system/language')]
     public function languageSave(): array
     {
-        if (!isDevEnv()) {
+        if (! isDevEnv()) {
             return ApiHelper::genErrorData('非开发环境不允许修改语言');
         }
         $langList = cfg('lang_list');

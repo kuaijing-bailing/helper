@@ -8,7 +8,6 @@ declare(strict_types=1);
  * @document https://help.kuaijingai.com
  * @contact  www.kuaijingai.com 7*12 9:00-21:00
  */
-
 namespace Bailing\Office;
 
 use Bailing\Constants\I18n\Common\CommonI18n;

@@ -17,6 +17,5 @@ class RuntimeFileClear
 {
     public function __construct()
     {
-        
     }
 }

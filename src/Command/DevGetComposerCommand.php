@@ -40,11 +40,9 @@ class DevGetComposerCommand extends HyperfCommand
             return;
         }
 
-
         $this->line('Start get the current bailing/helper version!', 'info');
         $composerJson = Json::decode(file_get_contents(BASE_PATH . '/composer.json'));
         $bailingVersion = str_replace(['^', '~'], '', $composerJson['require']['bailing/helper']);
-
 
         $this->line('Start downloading the composer package!', 'info');
         $localPath = BASE_PATH . '/runtime/composer.zip';
@@ -61,7 +59,6 @@ class DevGetComposerCommand extends HyperfCommand
             $this->line('File download failed, please try again!', 'error');
             return;
         }
-
 
         $this->line('Start unpacking the composer package!', 'info');
         $zip = new \ZipArchive();

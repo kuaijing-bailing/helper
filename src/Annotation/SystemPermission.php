@@ -35,4 +35,28 @@ class SystemPermission extends AbstractAnnotation
     public string $status = '1'; // 状态，0和1，默认1
 
     public string $app = ''; // 微前端提供者
+
+    public function __construct(
+        string $module = '',
+        string $action = '',
+        string $icon = '',
+        string $menu_type = '1',
+        string $url_type = 'path',
+        string $alias = '',
+        string $param = '',
+        string $sort = '0',
+        string $status = '1',
+        string $app = ''
+    ) {
+        $this->module = $module;
+        $this->action = $action;
+        $this->icon = $icon;
+        $this->menu_type = $menu_type;
+        $this->url_type = $url_type;
+        $this->alias = $alias;
+        $this->param = $param;
+        $this->sort = $sort;
+        $this->status = $status;
+        $this->app = $app;
+    }
 }

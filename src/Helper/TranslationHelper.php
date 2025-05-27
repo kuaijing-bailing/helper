@@ -133,7 +133,7 @@ class TranslationHelper
                     unset($translationDirty[$key]);
                 }
             }
-            if (!empty($translationDirty)) {
+            if (! empty($translationDirty)) {
                 stdLog()->info('saveTranslation dirty', $translationDirty);
                 $translation->is_changed = 1;
             }

@@ -98,7 +98,7 @@ class DevI18nCommand extends HyperfCommand
                 $matchFileContent = "/#\\[OrgPermission\\(module: '" . $tmp['module'] . "',.*\\]/";
                 preg_match($matchFileContent, $fileContent, $matchResult);
 
-                if (!empty($matchResult[0]) && !str_contains($matchResult[0], 'i18nName')) {
+                if (! empty($matchResult[0]) && ! str_contains($matchResult[0], 'i18nName')) {
                     $i18nTxt = I18nHelper::translateArr($name, true);
 
                     $matchContent = "#[OrgPermission(module: '" . $tmp['module'] . "',";
@@ -116,18 +116,18 @@ class DevI18nCommand extends HyperfCommand
             }
 
             // 自动补全原文件的操作名称
-            if (! empty($tmp['module']) && ! empty($tmp['action']) && !str_starts_with($tmp['action'], 'curd') && empty($tmp['i18nActionName'])) {
+            if (! empty($tmp['module']) && ! empty($tmp['action']) && ! str_starts_with($tmp['action'], 'curd') && empty($tmp['i18nActionName'])) {
                 $actionNameArr = explode('-', explode(':', $tmp['action'])[1]);
                 $name = $actionNameArr[0];
                 if (in_array($name, ['查看', '新增', '删除', '编辑', '导出', '排序', '字典设置', '审批流设置', '变更状态'])) {
                     $this->line('org菜单中 ' . $tmp['module'] . ' 的 ' . $tmp['action'] . ' 书写格式错误，增删改查应该属于curd', 'error');
-                    die;
+                    exit;
                 }
 
                 $matchFileContent = "/#\\[OrgPermission\\(module: '" . $tmp['module'] . "', action: '" . $tmp['action'] . "'.*\\]/";
                 preg_match($matchFileContent, $fileContent, $matchResult);
 
-                if (! empty($matchResult[0]) && !str_contains($matchResult[0], 'i18nActionName')) {
+                if (! empty($matchResult[0]) && ! str_contains($matchResult[0], 'i18nActionName')) {
                     $i18nTxt = I18nHelper::translateArr($name, true);
                     $matchContent = "#[OrgPermission(module: '" . $tmp['module'] . "', action: '" . $tmp['action'] . "'";
                     $fileSubContent = str_replace($matchContent, $matchContent . ', i18nActionName: ' . $i18nTxt, $matchResult[0]);
@@ -168,7 +168,7 @@ class DevI18nCommand extends HyperfCommand
                 $matchFileContent = "/#\\[OrgPermission\\(module: '" . str_replace('/', '\/', $annotation['module']) . "',.*\\]/";
                 preg_match($matchFileContent, $fileContent, $matchResult);
 
-                if (!empty($matchResult[0]) && !str_contains($matchResult[0], 'i18nName')) {
+                if (! empty($matchResult[0]) && ! str_contains($matchResult[0], 'i18nName')) {
                     $i18nTxt = I18nHelper::translateArr($name, true);
 
                     $matchContent = "#[OrgPermission(module: '" . $annotation['module'] . "',";
@@ -186,18 +186,18 @@ class DevI18nCommand extends HyperfCommand
             }
 
             // 自动补全原文件的操作名称
-            if (! empty($annotation['module']) && ! empty($annotation['action']) && !str_starts_with($annotation['action'], 'curd') && empty($annotation['i18nActionName'])) {
+            if (! empty($annotation['module']) && ! empty($annotation['action']) && ! str_starts_with($annotation['action'], 'curd') && empty($annotation['i18nActionName'])) {
                 $actionNameArr = explode('-', explode(':', $annotation['action'])[1]);
                 $name = $actionNameArr[0];
-                if(in_array($name, ['查看', '新增', '删除', '编辑'])){
+                if (in_array($name, ['查看', '新增', '删除', '编辑'])) {
                     $this->line('org菜单中 ' . $annotation['module'] . ' 的 ' . $annotation['action'] . ' 书写格式错误，增删改查应该属于curd', 'error');
-                    die;
+                    exit;
                 }
 
                 $matchFileContent = "/#\\[OrgPermission\\(module: '" . str_replace('/', '\/', $annotation['module']) . "', action: '" . str_replace('/', '\/', $annotation['action']) . "'.*\\]/";
                 preg_match($matchFileContent, $fileContent, $matchResult);
 
-                if (! empty($matchResult[0]) && !str_contains($matchResult[0], 'i18nActionName')) {
+                if (! empty($matchResult[0]) && ! str_contains($matchResult[0], 'i18nActionName')) {
                     $i18nTxt = I18nHelper::translateArr($name, true);
                     $matchContent = "#[OrgPermission(module: '" . $annotation['module'] . "', action: '" . $annotation['action'] . "'";
                     $fileSubContent = str_replace($matchContent, $matchContent . ', i18nActionName: ' . $i18nTxt, $matchResult[0]);
@@ -311,10 +311,8 @@ class DevI18nCommand extends HyperfCommand
 
                     // 自动补全原文件（示例数据）
                     if (! empty($attributeArr['tip']) && empty($attributeArr['i18nTip'])) {
-
-
                         $matchContent = ", tip: '" . $attributeArr['tip'] . "'";
-                        if(substr_count($fileContent, $matchContent) > 1) {
+                        if (substr_count($fileContent, $matchContent) > 1) {
                             $this->line($attributeArr['tip'] . ' 这个tip出现了至少两次，请检查，不要输入通用意义的提示。', 'error');
                             CoordinatorManager::until(Constants::WORKER_EXIT)->resume();
                             return;

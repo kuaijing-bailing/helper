@@ -131,7 +131,7 @@ class PayServiceConsumer extends AbstractServiceClient implements PayServiceInte
      * @param string $business 业务类型
      * @param string $business_name 业务名称
      */
-    public function insertBusiness(string $business,string $business_name):array
+    public function insertBusiness(string $business, string $business_name): array
     {
         try {
             return $this->__request(__FUNCTION__, compact('business', 'business_name'));

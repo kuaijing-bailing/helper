@@ -119,7 +119,7 @@ trait EnumI18nGet
         $classObj = self::getEnumClassAttitude();
 
         // 读取该分组下所有的多语言，以data_id作为键，value作为内容
-        if (!$onlyCode && cfg('open_internationalize')) {
+        if (! $onlyCode && cfg('open_internationalize')) {
             $langList = BailingI18nTranslation::query()->where(['type' => 0, 'group_code' => $classObj->groupCode])->pluck('value', 'data_id')->toArray();
         } else {
             $langList = [];

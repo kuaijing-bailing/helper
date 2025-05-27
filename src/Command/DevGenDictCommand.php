@@ -10,12 +10,10 @@ declare(strict_types=1);
  */
 namespace Bailing\Command;
 
-use Bailing\Annotation\EnumCodePrefix;
 use Hyperf\Command\Annotation\Command;
 use Hyperf\Command\Command as HyperfCommand;
 use Hyperf\Coordinator\Constants;
 use Hyperf\Coordinator\CoordinatorManager;
-use Hyperf\Di\Annotation\AnnotationCollector;
 use Hyperf\Stringable\Str;
 use Symfony\Component\Console\Input\InputArgument;
 use Symfony\Component\Console\Input\InputOption;

@@ -30,7 +30,7 @@ class I18nTranslationController
         $post = request()->all();
 
         // 第一页模拟创建下表，避免报错
-        if(empty($post['page']) || $post['page'] == 1){
+        if (empty($post['page']) || $post['page'] == 1) {
             I18nTranslationHelper::createTable();
         }
 
@@ -47,11 +47,11 @@ class I18nTranslationController
         $customFields = [];
         $list = buildFormSearchQuery(BailingI18nTranslation::query(), $post['filters'], $post['sorts'], $customFields);
 
-        if (!empty($customFields)) {
+        if (! empty($customFields)) {
             foreach ($customFields as $key => $value) {
                 if ($key == 'keywords') {
                     $list->where(function (Builder $query) use ($value) {
-                        $query->where('value_zh_cn', 'like', '%' . $value . '%')->orWhere('value->zh_cn', 'like', '%' . $value . '%')->orWhere('value->'. cfg('lang_default'), 'like', '%' . $value . '%');
+                        $query->where('value_zh_cn', 'like', '%' . $value . '%')->orWhere('value->zh_cn', 'like', '%' . $value . '%')->orWhere('value->' . cfg('lang_default'), 'like', '%' . $value . '%');
                     });
                 }
             }
@@ -78,7 +78,7 @@ class I18nTranslationController
             return ApiHelper::genErrorData('Missing important fields');
         }
         $i18nTranslation = BailingI18nTranslation::query()->where('id', $id)->first();
-        if(empty($i18nTranslation)){
+        if (empty($i18nTranslation)) {
             return ApiHelper::genErrorDataEmpty();
         }
         $i18nTranslation->value = $value;

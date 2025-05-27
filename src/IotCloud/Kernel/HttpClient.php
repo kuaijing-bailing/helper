@@ -10,10 +10,7 @@ declare(strict_types=1);
  */
 namespace Bailing\IotCloud\Kernel;
 
-use Bailing\Helper\HttpHelper;
 use GuzzleHttp\Client;
-use GuzzleHttp\Exception\ClientException;
-use GuzzleHttp\Exception\GuzzleException;
 use GuzzleHttp\Exception\RequestException;
 use Swoole\Coroutine\System;
 
@@ -36,7 +33,6 @@ trait HttpClient
             $response = $e->getResponse();
             $statusCode = $e->getResponse()->getStatusCode();
         }
-
 
         // accessToken超时了，尝试重试
         if ($statusCode == 401) {

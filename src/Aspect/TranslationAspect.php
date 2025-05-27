@@ -49,7 +49,7 @@ class TranslationAspect extends AbstractAspect
 
         // 得到i8n的值
         $i18nResult = $result->toArray();
-        if (!empty($tableI18nConfig)) {
+        if (! empty($tableI18nConfig)) {
             $relationField = $tableI18nConfig['relation'] ?? 'id';
             $i18nResult = TranslationHelper::i18nConvert(
                 $i18nResult,
@@ -66,7 +66,7 @@ class TranslationAspect extends AbstractAspect
         // 重组i18n的结果
         foreach ($newResult as $model) {
             if ($model instanceof Model) {
-                if (!empty($tableI18nConfig)) {
+                if (! empty($tableI18nConfig)) {
                     foreach ($tableI18nConfig['i18n'] as $item) {
                         $tmpField = 'i18n_' . $item;
                         if (! empty($i18nResult[$model->{$relationField}][$tmpField])) {
@@ -74,8 +74,8 @@ class TranslationAspect extends AbstractAspect
                         }
                     }
                 }
-                foreach($dateTimeFieldArr as $item){
-                    if(!empty($model->{$item})){
+                foreach ($dateTimeFieldArr as $item) {
+                    if (! empty($model->{$item})) {
                         $tmpField = 'i18n_' . $item;
                         if ($model->{$item} instanceof Carbon) {
                             $model->{$tmpField} = DateTimeHelper::getDateTimeByUnixTimestamp($model->{$item}->getTimestamp(), 'datetime');

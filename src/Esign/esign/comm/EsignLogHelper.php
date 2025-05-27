@@ -1,28 +1,36 @@
 <?php
+
+declare(strict_types=1);
+/**
+ * This file is part of Kuaijing Bailing.
+ *
+ * @link     https://www.kuaijingai.com
+ * @document https://help.kuaijingai.com
+ * @contact  www.kuaijingai.com 7*12 9:00-21:00
+ */
 namespace esign\comm;
 
 /**
- * esign日志类
- * @author  澄泓
+ * esign日志类.
  * @date  2022/08/18 15:10
  */
 class EsignLogHelper
 {
-    static function writeLog($text) {
-        if(is_array($text) || is_object($text)){
+    public static function writeLog($text)
+    {
+        if (is_array($text) || is_object($text)) {
             $text = json_encode($text);
         }
-        file_put_contents ( "../../log/".date("Y-m-d").".log", date ( "Y-m-d H:i:s" ) . "  " . $text . "\r\n", FILE_APPEND );
+        file_put_contents('../../log/' . date('Y-m-d') . '.log', date('Y-m-d H:i:s') . '  ' . $text . "\r\n", FILE_APPEND);
     }
-    
-    static function  printMsg($msg)
+
+    public static function printMsg($msg)
     {
-        echo "<pre/>";
+        echo '<pre/>';
         if (is_array($msg) || is_object($msg)) {
             var_dump($msg);
         } else {
             echo $msg . "\n";
         }
     }
-
 }

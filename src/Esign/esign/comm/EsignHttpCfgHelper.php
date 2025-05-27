@@ -1,22 +1,37 @@
 <?php
-namespace esign\comm;
+
+declare(strict_types=1);
 /**
- * 网络请求配置工具类
- * @author  澄泓
+ * This file is part of Kuaijing Bailing.
+ *
+ * @link     https://www.kuaijingai.com
+ * @document https://help.kuaijingai.com
+ * @contact  www.kuaijingai.com 7*12 9:00-21:00
+ */
+namespace esign\comm;
+
+/**
+ * 网络请求配置工具类.
  * @date  2022/08/18 14:27
  */
 class EsignHttpCfgHelper
 {
-    public static $connectTimeout = 15;//15 second
-    public static $readTimeout = 15;//15 second
+    public static $connectTimeout = 15; //15 second
+
+    public static $readTimeout = 15; //15 second
+
     public static $uploadReadTimeout = 60;
+
     public static $uploadConnectTimeout = 60;
-    public static $enableHttpProxy=false;//是否需要代理
-    public static $httpProxyIp;//代理ip
-    public static $httpProxyPort;//代理端口
+
+    public static $enableHttpProxy = false; //是否需要代理
+
+    public static $httpProxyIp; //代理ip
+
+    public static $httpProxyPort; //代理端口
 
     //常规请求类
-    public static function sendHttp($reqType, $url, $headers, $param=null)
+    public static function sendHttp($reqType, $url, $headers, $param = null)
     {
         $ch = curl_init();
         curl_setopt($ch, CURLOPT_CUSTOMREQUEST, $reqType);
@@ -38,7 +53,7 @@ class EsignHttpCfgHelper
             curl_setopt($ch, CURLOPT_CONNECTTIMEOUT, self::$connectTimeout);
         }
         //https request
-        if (strlen($url) > 5 && strtolower(substr($url, 0, 5)) == "https") {
+        if (strlen($url) > 5 && strtolower(substr($url, 0, 5)) == 'https') {
             curl_setopt($ch, CURLOPT_SSL_VERIFYPEER, false);
             curl_setopt($ch, CURLOPT_SSL_VERIFYHOST, false);
         }
@@ -49,53 +64,52 @@ class EsignHttpCfgHelper
 
         $httpCode = curl_getinfo($ch, CURLINFO_HTTP_CODE);
         curl_close($ch);
-        return new EsignResponse($httpCode,$curlRes);
+        return new EsignResponse($httpCode, $curlRes);
     }
 
     /**
-     * 上传文件
+     * 上传文件.
      * @param $uploadUrls
      * @param $contentMd5
      * @param $fileContent
      * @param $ContenType
      * @return EsignResponse
      */
-        public static function upLoadFileHttp($uploadUrls, $contentMd5, $fileContent,$ContenType){
-            $header = array(
-                'Content-Type:'.$ContenType,
-                'Content-Md5:' . $contentMd5
-            );
+    public static function upLoadFileHttp($uploadUrls, $contentMd5, $fileContent, $ContenType)
+    {
+        $header = [
+            'Content-Type:' . $ContenType,
+            'Content-Md5:' . $contentMd5,
+        ];
 
-            $curl_handle = curl_init();
-            curl_setopt($curl_handle, CURLOPT_URL, $uploadUrls);
-            curl_setopt($curl_handle, CURLOPT_FILETIME, true);
-            curl_setopt($curl_handle, CURLOPT_FRESH_CONNECT, false);
-           // curl_setopt($curl_handle, CURLOPT_HEADER, true); // 输出HTTP头 true
-            curl_setopt($curl_handle, CURLOPT_RETURNTRANSFER, true);
+        $curl_handle = curl_init();
+        curl_setopt($curl_handle, CURLOPT_URL, $uploadUrls);
+        curl_setopt($curl_handle, CURLOPT_FILETIME, true);
+        curl_setopt($curl_handle, CURLOPT_FRESH_CONNECT, false);
+        // curl_setopt($curl_handle, CURLOPT_HEADER, true); // 输出HTTP头 true
+        curl_setopt($curl_handle, CURLOPT_RETURNTRANSFER, true);
 
-            if (self::$uploadReadTimeout) {
-                curl_setopt($curl_handle, CURLOPT_TIMEOUT, self::$uploadReadTimeout);
-            }
-            if (self::$uploadConnectTimeout) {
-                curl_setopt($curl_handle, CURLOPT_CONNECTTIMEOUT, self::$uploadConnectTimeout);
-            }
-            
-            curl_setopt($curl_handle, CURLOPT_SSL_VERIFYPEER, false);
-            curl_setopt($curl_handle, CURLOPT_SSL_VERIFYHOST, false);
+        if (self::$uploadReadTimeout) {
+            curl_setopt($curl_handle, CURLOPT_TIMEOUT, self::$uploadReadTimeout);
+        }
+        if (self::$uploadConnectTimeout) {
+            curl_setopt($curl_handle, CURLOPT_CONNECTTIMEOUT, self::$uploadConnectTimeout);
+        }
 
+        curl_setopt($curl_handle, CURLOPT_SSL_VERIFYPEER, false);
+        curl_setopt($curl_handle, CURLOPT_SSL_VERIFYHOST, false);
+
+        curl_setopt($curl_handle, CURLOPT_HTTPHEADER, $header);
+        curl_setopt($curl_handle, CURLOPT_CUSTOMREQUEST, 'PUT');
+
+        curl_setopt($curl_handle, CURLOPT_POSTFIELDS, $fileContent);
+        if (is_array($header) && 0 < count($header)) {
             curl_setopt($curl_handle, CURLOPT_HTTPHEADER, $header);
-            curl_setopt($curl_handle, CURLOPT_CUSTOMREQUEST, 'PUT');
+        }
+        $curlRes = curl_exec($curl_handle);
+        $httpCode = curl_getinfo($curl_handle, CURLINFO_HTTP_CODE);
 
-            curl_setopt($curl_handle, CURLOPT_POSTFIELDS, $fileContent);
-            if (is_array($header) && 0 < count($header)) {
-                curl_setopt($curl_handle, CURLOPT_HTTPHEADER, $header);
-            }
-            $curlRes = curl_exec($curl_handle);
-            $httpCode = curl_getinfo($curl_handle, CURLINFO_HTTP_CODE);
-
-            curl_close($curl_handle);
-            return new EsignResponse($httpCode,$curlRes);
+        curl_close($curl_handle);
+        return new EsignResponse($httpCode, $curlRes);
     }
-
-    
 }

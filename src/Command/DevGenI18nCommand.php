@@ -75,7 +75,7 @@ class DevGenI18nCommand extends HyperfCommand
                     [
                         'title' => 'demo',
                         'key' => 'demo',
-                    ]
+                    ],
                 ];
             }
 
@@ -103,13 +103,13 @@ class DevGenI18nCommand extends HyperfCommand
         foreach ($i18nArr as $item) {
             $chinese = $item[$field];
             $i18nTxt = '';
-            if($chinese != 'demo'){
+            if ($chinese != 'demo') {
                 $i18nTxt = I18nHelper::translateArr($chinese, true);
             }
 
             $enumKey = strtoupper($item[$key]);
 
-            $i18nCode .= "    #[EnumI18n(txt: '" . $chinese . "'" .  (!empty($i18nTxt) ? ", i18nTxt: " . $i18nTxt : '') . ')]' . PHP_EOL . '    case ' . $enumKey . " = '" . $item[$key] . "';" . PHP_EOL;
+            $i18nCode .= "    #[EnumI18n(txt: '" . $chinese . "'" . (! empty($i18nTxt) ? ', i18nTxt: ' . $i18nTxt : '') . ')]' . PHP_EOL . '    case ' . $enumKey . " = '" . $item[$key] . "';" . PHP_EOL;
         }
 
         $stub = str_replace('%I18N_CODE%', $i18nCode, $stub);

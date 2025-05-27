@@ -83,6 +83,7 @@ class LogController
 
         return ApiHelper::genErrorData('暂无权限查看', 4001);
     }
+
     /**
      * 查看日志版本.
      */

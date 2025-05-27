@@ -39,4 +39,32 @@ class LinkLibraryPermission extends AbstractAnnotation
     public string $micro = ''; // 服务提供者，重新上报时会清空
 
     public string $icon = ''; // 链接库按钮icon
+
+    public function __construct(
+        string $cat = '',
+        string $port = '',
+        string $name = '',
+        ?array $i18nName = null,
+        string $alias = '',
+        string $link = '',
+        string $pc_link = '',
+        array $sub = [],
+        string $show = '1',
+        string $sort = '0',
+        string $micro = '',
+        string $icon = ''
+    ) {
+        $this->cat = $cat;
+        $this->port = $port;
+        $this->name = $name;
+        $this->i18nName = $i18nName;
+        $this->alias = $alias;
+        $this->link = $link;
+        $this->pc_link = $pc_link;
+        $this->sub = $sub;
+        $this->show = $show;
+        $this->sort = $sort;
+        $this->micro = $micro;
+        $this->icon = $icon;
+    }
 }

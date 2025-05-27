@@ -17,7 +17,7 @@ use Hyperf\Amqp\Message\Type;
 #[Producer(exchange: 'system.defaultFanOut', routingKey: 'system.defaultFanOut')]
 class DefaultFanOutProducer extends ProducerMessage
 {
-    protected string $type = Type::FANOUT; // 广播消息
+    protected Type|string $type = Type::FANOUT; // 广播消息
 
     public function __construct(array $data)
     {
