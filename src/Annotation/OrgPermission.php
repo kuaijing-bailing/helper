@@ -52,6 +52,8 @@ class OrgPermission extends AbstractAnnotation
 
     public int $parentOrgId = 0; // 固定的父自增ID
 
+    public bool $hideInternationalize = true; // 是否在多语言环境隐藏
+
     public function __construct(
         string $module = '',
         string $action = '',
@@ -71,6 +73,7 @@ class OrgPermission extends AbstractAnnotation
         string $app = '',
         int $orgId = 0,
         int $parentOrgId = 0,
+        bool $hideInternationalize = false
     ) {
         $this->module = $module;
         $this->action = $action;
@@ -90,5 +93,6 @@ class OrgPermission extends AbstractAnnotation
         $this->app = $app;
         $this->orgId = $orgId;
         $this->parentOrgId = $parentOrgId;
+        $this->hideInternationalize = $hideInternationalize;
     }
 }

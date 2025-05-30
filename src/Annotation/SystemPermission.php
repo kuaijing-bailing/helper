@@ -28,6 +28,8 @@ class SystemPermission extends AbstractAnnotation
 
     public string $alias = ''; // 路由别名
 
+    public string $url = ''; // 页面路径
+
     public string $param = ''; // 路由参数
 
     public string $sort = '0'; // 排序，越大越前，一级菜单千进位，二级菜单百进位，默认0
@@ -43,6 +45,7 @@ class SystemPermission extends AbstractAnnotation
         string $menu_type = '1',
         string $url_type = 'path',
         string $alias = '',
+        string $url = '',
         string $param = '',
         string $sort = '0',
         string $status = '1',
@@ -54,6 +57,7 @@ class SystemPermission extends AbstractAnnotation
         $this->menu_type = $menu_type;
         $this->url_type = $url_type;
         $this->alias = $alias;
+        $this->url = $url;
         $this->param = $param;
         $this->sort = $sort;
         $this->status = $status;
