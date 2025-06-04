@@ -8,6 +8,7 @@ declare(strict_types=1);
  * @document https://help.kuaijingai.com
  * @contact  www.kuaijingai.com 7*12 9:00-21:00
  */
+
 namespace Bailing\Office;
 
 use Bailing\Office\Excel\PhpOffice;
@@ -21,13 +22,24 @@ class Collection extends \Hyperf\Collection\Collection
     public function export(string $dto, string $filename, array|\Closure $closure = null, array $extra = [], bool $isDemo = false, int $orgId = 0, array $infos = []): ResponseInterface
     {
         $excelDrive = \Hyperf\Config\config('excel.drive', 'auto');
+
         if ($excelDrive === 'auto') {
-            $excel = extension_loaded('xlswriter') ? new XlsWriter($dto, $extra, $isDemo, $orgId, $infos) : new PhpOffice($dto);
+            $driver = extension_loaded('xlswriter') ? 'xlswriter' : 'phpoffice';
         } else {
-            $excel = $excelDrive === 'xlsWriter' ? new XlsWriter($dto, $extra, $isDemo, $orgId, $infos) : new PhpOffice($dto);
+            $driver = strtolower($excelDrive);
         }
 
-        return $excel->export($filename, is_null($closure) ? $this->toArray() : $closure, null, $isDemo, $orgId, $infos);
+        $data = is_null($closure) ? $this->toArray() : $closure;
+
+        switch ($driver) {
+            case 'xlswriter':
+                $excel = new XlsWriter($dto, $extra, $isDemo, $orgId, $infos);
+                return $excel->export($filename, $data, null, $isDemo, $orgId, $infos);
+            case 'phpoffice':
+            default:
+                $excel = new PhpOffice($dto);
+                return $excel->export($filename, $data, $isDemo, $orgId);
+        }
     }
 
     public function import(string $dto, Model $model, ?\Closure $closure = null, array $extra = [], int $orgId = 0): bool
