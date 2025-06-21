@@ -10,15 +10,13 @@ declare(strict_types=1);
  */
 namespace Bailing\Aspect;
 
-use Bailing\Helper\Intl\DateTimeHelper;
-use Bailing\Helper\Intl\NumberFormatHelper;
-use Carbon\Carbon;
-use Hyperf\Database\Model\Collection;
-use Hyperf\Database\Model\Model;
 use Hyperf\Di\Annotation\Aspect;
 use Hyperf\Di\Aop\AbstractAspect;
 use Hyperf\Di\Aop\ProceedingJoinPoint;
 
+/**
+ * Pgsql数据库监听.
+ */
 #[Aspect]
 class PgSqlCompileJsonContainsAspect extends AbstractAspect
 {
