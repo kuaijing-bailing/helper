@@ -273,6 +273,9 @@ class XlsWriter extends Excel implements ExcelPropertyInterface
             foreach ($columnTip as $item) {
                 $tipArr[] = count($tipArr) . '. ' . $item['value'] . ': ' . $item['tip'];
             }
+            foreach ($infos['tips'] as $infoTip) {
+                $tipArr[] = count($tipArr) . '. ' . $infoTip['value'] . ': ' . $infoTip['tip'];
+            }
             $fileObject->mergeCells(sprintf('A1:%s1', $this->getColumnIndex(count($columnField) - 1)), implode(PHP_EOL, $tipArr));
             $fileObject->setRow(
                 'A1:A1',
