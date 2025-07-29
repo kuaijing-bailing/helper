@@ -13,6 +13,7 @@ namespace Bailing\Listener;
 use Bailing\Helper\Annotation\I18nTranslationReportHelper;
 use Bailing\Helper\Annotation\TranslationReportHelper;
 use Bailing\Helper\Approval\ApprovalProcessHelper;
+use Bailing\Helper\ExtraField\ExtraFieldsHelper;
 use Bailing\Helper\Intl\I18nTranslationHelper;
 use Bailing\Helper\OrgConfigHelper;
 use Bailing\Helper\TranslationHelper;
@@ -57,6 +58,9 @@ class MainWorkerStartListener implements ListenerInterface
         // 初始化审批流程表
         ApprovalProcessHelper::createCategoryTable();
         ApprovalProcessHelper::createTable();
+
+        // 拓展字段表
+        ExtraFieldsHelper::createExtraFieldsTable();
 
         // 生产环境，执行下 preStart，初始下sql语句
         if (! isDevEnv()) {
