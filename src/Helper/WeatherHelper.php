@@ -62,6 +62,10 @@ class WeatherHelper
     #[Cacheable(prefix: 'getWeatherCondition', value: '#{someDay}_#{city}_#{province}', ttl: 3600)]
     public static function getWeatherCondition(string $someDay, string $city, string $province = '')
     {
+        if (empty(cfg('qweather_dev_host'))) {
+            return [];
+        }
+
         $locationId = self::getCityLocationId($city, $province);
         if (! $locationId) {
             return [];
@@ -94,6 +98,9 @@ class WeatherHelper
     #[Cacheable(prefix: 'weatherGetCityLocationId', value: '#{city}_#{province}', ttl: 2592000, listener: 'weatherGetCityLocationId-update')]
     public static function getCityLocationId(string $city, string $province = '')
     {
+        if (empty(cfg('qweather_dev_host'))) {
+            return 0;
+        }
         $client = new Client();
         if ($province) {
             $url = 'https://' . cfg('qweather_dev_host') . '/geo/v2/city/lookup?location=' . urlencode($city) . '&adm=' . urlencode($province) . '&key=' . cfg('qweather_dev_key');
