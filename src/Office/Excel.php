@@ -74,7 +74,11 @@ abstract class Excel
 
         if (! empty($extraData)) {
             if (! empty($this->annotationMate['_c'])) {
-                $startIndex = count($this->annotationMate['_p']) - 1;
+                if (empty($this->annotationMate['_p'])) {
+                    $startIndex = -1;
+                } else {
+                    $startIndex = count($this->annotationMate['_p']) - 1;
+                }
                 foreach ($extraData as $key => $value) {
                     ++$startIndex;
                     if (empty($this->annotationMate['_p'][$value['key']][self::ANNOTATION_NAME])) {
