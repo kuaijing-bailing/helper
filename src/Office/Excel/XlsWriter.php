@@ -14,8 +14,10 @@ use Bailing\Constants\Code\Common\CommonCode;
 use Bailing\Constants\I18n\Common\CommonI18n;
 use Bailing\Exception\BusinessException;
 use Bailing\Helper\StrHelper;
+use Bailing\Helper\XlsWriterHelper;
 use Bailing\Office\Excel;
 use Bailing\Office\Interfaces\ExcelPropertyInterface;
+use Carbon\Carbon;
 use Hyperf\DbConnection\Model\Model;
 use Hyperf\HttpServer\Contract\RequestInterface;
 use Hyperf\HttpServer\Contract\ResponseInterface;
@@ -55,6 +57,8 @@ class XlsWriter extends Excel implements ExcelPropertyInterface
             $data = $xlsxObject->openFile($tempFileName)->openSheet()->setType($setTypeArr)->getSheetData();
             unset($data[0], $data[1]);
 
+            $xlsWriterHelper = new XlsWriterHelper();
+
             $importData = [];
             foreach ($data as $item) {
                 $tmp = [];
@@ -77,6 +81,15 @@ class XlsWriter extends Excel implements ExcelPropertyInterface
                     // 判断必填字段
                     if (empty($errorMsg) && $tmpProperty['required'] && $value === '') {
                         $errorMsg = CommonCode::PARAMS_EMPTY_WITH_FIELD->genI18nMsg(['field' => $tmpProperty['value']], true, $this->nowLang);
+                    }
+
+                    // 判断日期时间字段
+                    if (empty($errorMsg) && $tmpProperty['dateTime'] && $value != '') {
+                        $realDateTime = $xlsWriterHelper->formatDate($value, $tmpProperty['dateTime']);
+                        if (empty($realDateTime)) {
+                            $errorMsg = CommonCode::PARAMS_WRONG_WITH_FIELD->genI18nMsg(['field' => $tmpProperty['value']], true, $this->nowLang);
+                        }
+                        $tmp[$tmpProperty['name']] = $realDateTime;
                     }
 
                     // 判断字典值

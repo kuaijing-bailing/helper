@@ -161,6 +161,7 @@ abstract class Excel
                 'dictName' => $mate[self::ANNOTATION_NAME]->dictName ?? '',
                 'dictData' => $mate[self::ANNOTATION_NAME]->dictData ?? [],
                 'required' => $mate[self::ANNOTATION_NAME]->required ?? false,
+                'dateTime' => $mate[self::ANNOTATION_NAME]->dateTime ?? null,
             ];
 
             $this->demoValue[$name] = $mate[self::ANNOTATION_NAME]->i18nDemo[$this->nowLang] ?? $mate[self::ANNOTATION_NAME]->demo;

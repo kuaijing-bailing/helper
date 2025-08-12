@@ -103,6 +103,11 @@ class ExcelProperty extends AbstractAnnotation
      */
     public string $path;
 
+    /**
+     * 是否是日期时间格式，日期填写date，时间填写time，日期时间填写dateTime
+     */
+    public string $dateTime;
+
     public function __construct(
         string $value,
         int $index,
@@ -121,6 +126,7 @@ class ExcelProperty extends AbstractAnnotation
         string $dictName = '',
         array $dictData = [],
         string $path = null,
+        string $dateTime = '',
     ) {
         $this->value = $value;
         $this->index = $index;
@@ -139,5 +145,6 @@ class ExcelProperty extends AbstractAnnotation
         isset($dictName) && $this->dictName = $dictName;
         isset($dictData) && $this->dictData = $dictData;
         isset($path) && $this->path = $path;
+        isset($dateTime) && $this->dateTime = $dateTime;
     }
 }
