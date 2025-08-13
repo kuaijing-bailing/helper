@@ -46,6 +46,11 @@ class MainWorkerStartListener implements ListenerInterface
 
     public function process(object $event): void
     {
+        // 避免框架偶尔二次执行
+        if (! redis()->set('mainWorkerStart', 'rate', ['NX', 'EX' => 10])) {
+            return;
+        }
+
         // 初始化配置表
         OrgConfigHelper::createTable();
 
