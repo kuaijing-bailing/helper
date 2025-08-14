@@ -17,7 +17,7 @@ interface AreaServiceInterface
      */
     public function getArea(int $areaCode): array;
 
-    public function getAreaByShortName(string $name): array;
+    public function getAreaByShortName(string $name, int $level = 0, int $parentCode = 0): array;
 
     public function getAreaByName(string $name): array;
 

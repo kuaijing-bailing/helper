@@ -37,10 +37,10 @@ class AreaServiceConsumer extends AbstractServiceClient implements AreaServiceIn
         }
     }
 
-    public function getAreaByShortName(string $name): array
+    public function getAreaByShortName(string $name, int $level = 0, int $parentCode = 0): array
     {
         try {
-            return $this->__request(__FUNCTION__, compact('name'));
+            return $this->__request(__FUNCTION__, compact('name', 'level', 'parentCode'));
         } catch (\Exception $exception) {
             return ApiHelper::genServiceErrorData($this->serviceName, $exception);
         }
