@@ -13,10 +13,13 @@ namespace Bailing\Controller;
 use Bailing\Constants\Code\Common\CommonCode;
 use Bailing\Helper\ApiHelper;
 use Bailing\Helper\Intl\DateTimeHelper;
+use Bailing\Helper\OrgConfigHelper;
+use Bailing\Middleware\OrgMiddleware;
 use Bailing\Office\Collection;
 use Hyperf\Codec\Json;
 use Hyperf\HttpServer\Annotation\Controller;
 use Hyperf\HttpServer\Annotation\GetMapping;
+use Hyperf\HttpServer\Annotation\Middleware;
 use Psr\Http\Message\ResponseInterface;
 
 #[Controller]
@@ -48,5 +51,29 @@ class ImportController
             closure: $cacheResultArr['data'] ?? [],
             orgId: $cacheResultArr['org_id']
         );
+    }
+
+    #[GetMapping('/export/config')]
+    #[Middleware(OrgMiddleware::class)]
+    public function exportConfig(): array
+    {
+        $alias = request()->input('alias');
+        if (empty($alias)) {
+            return ApiHelper::genErrorData(CommonCode::PARAM_ERROR);
+        }
+        $nowAdmin = contextGet('nowUser');
+
+        $config = OrgConfigHelper::getConfig($nowAdmin->org_id, $alias);
+        if (empty($config)) {
+            return ApiHelper::genErrorData(CommonCode::PARAM_ERROR);
+        }
+        $configArr = Json::decode($config);
+
+        $list[] = [
+            'field' => $configArr['field_name'],
+            'name' => $configArr['show_name'],
+        ];
+
+        return ApiHelper::genSuccessData(['list' => $list]);
     }
 }
