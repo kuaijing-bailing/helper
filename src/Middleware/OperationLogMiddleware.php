@@ -108,7 +108,7 @@ class OperationLogMiddleware implements MiddlewareInterface
         }
 
         // 如果是不请求的URL，不存
-        $filterStr = $operationLog['method'] . ':/' . $operationLog['router'];
+        $filterStr = $operationLog['method'] . ':' . $operationLog['router'];
         $config = config('log_report');
         if (! empty($config) && in_array($filterStr, $config)) {
             return $result;

@@ -13,6 +13,8 @@ namespace Bailing\Job;
 use Bailing\Annotation\XxlJobTask;
 use Bailing\Event\RuntimeFileClear;
 use Bailing\Helper\FileHelper;
+use Hyperf\Coordinator\Constants;
+use Hyperf\Coordinator\CoordinatorManager;
 use Hyperf\Di\Annotation\Inject;
 use Hyperf\XxlJob\Annotation\XxlJob;
 use Hyperf\XxlJob\Handler\AbstractJobHandler;
@@ -71,5 +73,8 @@ class RuntimeFileClearJob extends AbstractJobHandler
         stdLog()->info('清空缓存上传文件完成执行，删除文件总数：' . strval($clearCount));
 
         container()->get(EventDispatcherInterface::class)->dispatch(new RuntimeFileClear());
+
+        // 终止进程
+        CoordinatorManager::until(Constants::WORKER_EXIT)->resume();
     }
 }
