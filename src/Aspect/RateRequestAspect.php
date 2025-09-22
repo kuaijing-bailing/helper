@@ -11,6 +11,7 @@ declare(strict_types=1);
 namespace Bailing\Aspect;
 
 use Bailing\Annotation\RateRequest;
+use Bailing\Constants\Code\Common\CommonCode;
 use Bailing\Helper\ApiHelper;
 use Bailing\Helper\RequestHelper;
 use Hyperf\Codec\Json;
@@ -45,7 +46,7 @@ class RateRequestAspect extends AbstractAspect
 
         $classMethod = explode(':', RequestHelper::getAdminModule());
 
-        // 如果 ratekey 为空，
+        // 如果 rateKey 为空，
         if (empty($rateKey)) {
             $handleArr = request()->all();
         } else {
@@ -63,7 +64,7 @@ class RateRequestAspect extends AbstractAspect
                     'nowUser' => (array) $nowUser,
                 ];
             } else {
-                return self::json('[技术错误]如果请求参数为空，则需要先引用鉴权登录的中间件生成协程中的用户信息');
+                return CommonCode::RATE_REQUEST_PARAMS_EMPTY->genI18nMsg(returnNowLang: true);
             }
         }
 
@@ -75,7 +76,7 @@ class RateRequestAspect extends AbstractAspect
         $result = $redis->set($strKey, Json::encode($handleArr), ['NX', 'EX' => $waitTimeout]);
         if (empty($result)) {
             stdLog()->warning('RateRequestAspect', $handleArr);
-            return self::json('该相关请求正在执行，请稍后再试');
+            return CommonCode::RATE_REQUEST_EXECUTING->genI18nMsg(returnNowLang: true);
         }
 
         $result = $proceedingJoinPoint->process();
@@ -84,13 +85,5 @@ class RateRequestAspect extends AbstractAspect
         $redis->del($strKey);
 
         return $result;
-    }
-
-    private static function json(string $msg, int $errCode = ApiHelper::NORMAL_ERROR)
-    {
-        $body = new SwooleStream(Json::encode(ApiHelper::genErrorData($msg, $errCode)));
-        return Context::get(ResponseInterface::class)
-            ->withAddedHeader('content-type', 'application/json; charset=utf-8')
-            ->withBody($body);
     }
 }

@@ -136,4 +136,10 @@ enum CommonCode: int implements EnumCodeInterface
 
     #[EnumCode(msg: '名称重复，请编辑后重试', i18nMsg: ['en' => 'The name is duplicated, please edit it and try again', 'zh_tw' => '名稱重複，請編輯後重試', 'ja' => '名前が重複しています。編集してもう一度お試しください。', 'zh_hk' => '名稱重複，請編輯後重試'])]
     case NAME_REPEAT = 40;
+
+    #[EnumCode(msg: '该相关请求正在执行，请稍后再试', i18nMsg: ['en' => 'The related request is being executed, please try again later', 'zh_tw' => '該相關請求正在執行，請稍後再試', 'zh_hk' => '該相關請求正在執行，請稍後再試', 'ja' => '関連するリクエストが実行中です。しばらくしてから再試行してください。'])]
+    case RATE_REQUEST_EXECUTING = 41;
+
+    #[EnumCode(msg: '[技术错误]如果请求参数为空，则需要先引用鉴权登录的中间件生成协程中的用户信息', i18nMsg: ['en' => '[Technical error] If the request parameter is empty, you need to reference the authentication login middleware to generate the user information in the coroutine', 'zh_tw' => '[技術錯誤]如果請求參數為空，則需要先引用認證登錄的中間件生成協程中的用戶信息', 'zh_hk' => '[技術錯誤]如果請求參數為空，則需要先引用認證登錄的中間件生成協程中的用戶信息', 'ja' => '[技術エラー]リクエストパラメータが空の場合は、認証ログインミドルウェアを参照して、コルーチン内のユーザー情報を生成する必要があります'])]
+    case RATE_REQUEST_PARAMS_EMPTY = 42;
 }
