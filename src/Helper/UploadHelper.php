@@ -10,6 +10,7 @@ declare(strict_types=1);
  */
 namespace Bailing\Helper;
 
+use Bailing\Constants\Code\Common\CommonCode;
 use Exception;
 use GuzzleHttp\Client;
 use GuzzleHttp\Exception\GuzzleException;
@@ -202,14 +203,14 @@ class UploadHelper
 
     /**
      * 上传本地文件(服务应用内部调用).
-     * @param mixed $file /opt/www/runtime/doc/1640071827.docx
+     * @param string $file /opt/www/runtime/doc/1640071827.docx
      * @param string $folder 文件目录
      * @throws FilesystemException
      */
-    public function uploadLocalFile($file, string $folder = 'contract', bool $unlink = false): array  //线上开启
+    public function uploadLocalFile(string $file, string $folder = 'contract', bool $unlink = false): array  //线上开启
     {
         if (! file_exists($file)) {
-            return ApiHelper::genErrorData('文件不存在');
+            return ApiHelper::genErrorData(CommonCode::UPLOAD_FILE_EMPTY);
         }
         $extension = pathinfo($file, PATHINFO_EXTENSION);
         $uploadFile = 'upload/' . $folder . '/' . date('Ymd') . '/' . uniqid() . mt_rand(10000, 99999) . '.' . $extension;
@@ -224,6 +225,22 @@ class UploadHelper
     }
 
     /**
+     * 上传Base64文件.
+     * @param string $base64Content base64编码后的文件内容
+     * @param string $folder 文件目录
+     * @throws FilesystemException
+     */
+    public function uploadFileBase64(string $base64Content, string $extension, string $folder = 'tmp'): array  //线上开启
+    {
+        if (empty($base64Content)) {
+            return ApiHelper::genErrorData(CommonCode::UPLOAD_FILE_EMPTY);
+        }
+        $uploadFile = 'upload/' . $folder . '/' . date('Ymd') . '/' . uniqid() . mt_rand(10000, 99999) . '.' . $extension;
+        $this->filesystemFactory->get($this->filesystemType)->writeStream($uploadFile, base64_decode($base64Content));  // null  上传成功
+        return ApiHelper::genSuccessData(['fileName' => $uploadFile, 'fileUrl' => fileDomain($uploadFile)]);
+    }
+
+    /**
      * 上传本地文件(服务应用内部调用).
      * @param mixed $file doc/1640071827.docx
      * @param string $folder 文件目录
@@ -234,14 +251,16 @@ class UploadHelper
     {
         $localFile = $this->filesystemFactory->get('local')->fileExists($file);
         if (! $localFile) {
-            throw new \Exception('文件不存在');
+            throw new \Exception(CommonCode::UPLOAD_FILE_EMPTY->genI18nMsg(returnNowLang: true));
         }
         $extension = pathinfo($file, PATHINFO_EXTENSION);
         $uploadFile = 'upload/' . $folder . '/' . date('Ymd') . '/' . uniqid() . mt_rand(10000, 99999) . '.' . $extension;
         // Add filesystem local file
         $localStream = $this->filesystemFactory->get('local')->read($file); //不含下载目录的filesystem local文件路径 二进制流
         $this->filesystemFactory->get($this->filesystemType)->write($uploadFile, $localStream); //相应判断文件应fileExists  null 写入成功
-        $unlink ? $this->filesystemFactory->get('local')->delete($file) : false;
+        if ($unlink) {
+            $this->filesystemFactory->get('local')->delete($file);
+        }
         return ['fileName' => $uploadFile, 'fileUrl' => fileDomain($uploadFile)];
     }
 

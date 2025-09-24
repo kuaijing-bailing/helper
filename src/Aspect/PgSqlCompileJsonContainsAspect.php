@@ -36,7 +36,12 @@ class PgSqlCompileJsonContainsAspect extends AbstractAspect
         // 执行原方法
         $result = $proceedingJoinPoint->process();
 
-        if (!empty($arguments[0]) && str_contains($result, '@>') && (str_contains($arguments[0], 'build_bind->room') || str_contains($arguments[0], 'build_bind->build') || str_contains($arguments[0], 'checked_build->room'))) {
+        if (!empty($arguments[0]) && str_contains($result, '@>') && (
+            str_contains($arguments[0], 'build_bind->room')
+            || str_contains($arguments[0], 'build_bind->build')
+            || str_contains($arguments[0], 'checked_build->room')
+            || str_contains($arguments[0], 'module->menu')
+            )) {
             $sqlArr = explode('@>', $result);
             $result = 'EXISTS ( SELECT 1 FROM jsonb_array_elements(' . trim($sqlArr[0]) . ') AS elem WHERE elem @> ' . trim($sqlArr[1]) . '::jsonb)';
         }
