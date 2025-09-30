@@ -53,5 +53,5 @@ class BailingApprovalModule extends Model
     /**
      * The attributes that should be cast to native types.
      */
-    protected array $casts = ['id' => 'integer', 'approval_type' => 'integer', 'form_version' => 'integer', 'start_user_type' => 'integer', 'created_at' => 'datetime', 'updated_at' => 'datetime', 'form' => 'array', 'i18n_name' => 'array', 'i18n_desc' => 'array'];
+    protected array $casts = ['id' => 'integer', 'approval_type' => 'integer', 'form_version' => 'integer', 'start_user_type' => 'integer', 'created_at' => 'datetime', 'updated_at' => 'datetime', 'form' => 'array', 'i18n_name' => 'array', 'i18n_desc' => 'array', 'i18n_source_txt' => 'array', 'i18n_cat_type' => 'array', 'i18n_sub_cat_type' => 'array'];
 }

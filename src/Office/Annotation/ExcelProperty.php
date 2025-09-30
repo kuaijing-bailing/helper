@@ -108,6 +108,26 @@ class ExcelProperty extends AbstractAnnotation
      */
     public string $dateTime;
 
+    /**
+     * @param string $value 列表头名称.
+     * @param int $index 列顺序.
+     * @param string $demo 示例数据.
+     * @param string $tip 字段提示.
+     * @param array $i18nValue 列表头名称（国际化）.
+     * @param array $i18nDemo 示例数据（国际化）.
+     * @param array $i18nTip 字段提示（国际化）.
+     * @param int|null $width 宽度.
+     * @param int|null $height 高度（仅取第一个的）.
+     * @param string|null $align 对齐方式，默认居左.
+     * @param bool $required 列表头是否必填.
+     * @param int|null $headHeight 列表头的高度（仅取第一个的）.
+     * @param int|string|null $color 列表体字体颜色.
+     * @param int|string|null $bgColor 列表体背景颜色.
+     * @param string $dictName 字典名单（将自动前往org服务查找字典内容，自行引入org服务）.
+     * @param array $dictData 字典数组（例如公司列表等情况使用）.
+     * @param string|null $path 数据路径 用法: object.value.
+     * @param string $dateTime 是否是日期时间格式，日期填写date，时间填写time，日期时间填写dateTime
+     */
     public function __construct(
         string $value,
         int $index,

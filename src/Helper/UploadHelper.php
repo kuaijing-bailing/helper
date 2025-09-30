@@ -236,7 +236,7 @@ class UploadHelper
             return ApiHelper::genErrorData(CommonCode::UPLOAD_FILE_EMPTY);
         }
         $uploadFile = 'upload/' . $folder . '/' . date('Ymd') . '/' . uniqid() . mt_rand(10000, 99999) . '.' . $extension;
-        $this->filesystemFactory->get($this->filesystemType)->writeStream($uploadFile, base64_decode($base64Content));  // null  上传成功
+        $this->filesystemFactory->get($this->filesystemType)->write($uploadFile, base64_decode($base64Content));  // null  上传成功
         return ApiHelper::genSuccessData(['fileName' => $uploadFile, 'fileUrl' => fileDomain($uploadFile)]);
     }
 
