@@ -61,7 +61,7 @@ class IntlAspect extends AbstractAspect
 
                         if (isset($model->{$tmpField})) {
                             $tmpNewField = 'i18n_' . $tmpField;
-                            $model->{$tmpNewField} = NumberFormatHelper::getFormatNumberArray(number: (float) getFormatNumber($model->{$tmpField}, $tmpDecimals), decimals: $tmpDecimals);
+                            $model->{$tmpNewField} = NumberFormatHelper::getFormatNumberArray(number: $model->{$tmpField}, decimals: $tmpDecimals);
                         }
                     }
                 }
