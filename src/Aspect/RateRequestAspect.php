@@ -64,7 +64,7 @@ class RateRequestAspect extends AbstractAspect
                     'nowUser' => (array) $nowUser,
                 ];
             } else {
-                return CommonCode::RATE_REQUEST_PARAMS_EMPTY->genI18nMsg(returnNowLang: true);
+                return ApiHelper::genErrorData(CommonCode::RATE_REQUEST_PARAMS_EMPTY->genI18nMsg(returnNowLang: true));
             }
         }
 
@@ -76,7 +76,7 @@ class RateRequestAspect extends AbstractAspect
         $result = $redis->set($strKey, Json::encode($handleArr), ['NX', 'EX' => $waitTimeout]);
         if (empty($result)) {
             stdLog()->warning('RateRequestAspect', $handleArr);
-            return CommonCode::RATE_REQUEST_EXECUTING->genI18nMsg(returnNowLang: true);
+            return ApiHelper::genErrorData(CommonCode::RATE_REQUEST_EXECUTING->genI18nMsg(returnNowLang: true));
         }
 
         $result = $proceedingJoinPoint->process();
