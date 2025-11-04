@@ -14,11 +14,13 @@ use Bailing\Constants\Code\Common\CommonCode;
 use Exception;
 use GuzzleHttp\Client;
 use GuzzleHttp\Exception\GuzzleException;
+use Hyperf\Context\Context;
 use Hyperf\Contract\ConfigInterface;
 use Hyperf\Di\Annotation\Inject;
 use Hyperf\Filesystem\FilesystemFactory;
 use League\Flysystem\Filesystem;
 use League\Flysystem\FilesystemException;
+use Psr\Http\Message\ServerRequestInterface;
 
 /**
  * Class UploadHelper.
@@ -85,10 +87,31 @@ class UploadHelper
      * @throws FilesystemException
      * @throws Exception
      */
-    public function uploadFile(mixed $file, string $fileDir): array
+    public function uploadFile(mixed $file, string $fileDir, string $userType = 'org', int|string $orgId = 0): array
     {
         if (! $fileDir) {
             $fileDir = 'files';
+        }
+
+        // 根据当前用户类型，设置文件上传目录
+        if ($fileDir != 'tmp') {
+            if ($userType == 'user') {
+                if (empty($orgId)) {
+                    $request = Context::get(ServerRequestInterface::class);
+                    if (! empty($request)) {
+                        $orgId = $request->input('org_id', 0);
+                    }
+                }
+                $fileDir = $userType . '/' . $orgId . '/' . $fileDir;
+            } elseif ($userType == 'org') {
+                if (empty($orgId)) {
+                    $nowUser = contextGet('nowUser');
+                    ! empty($nowUser->org_id) && $orgId = $nowUser->org_id;
+                }
+                $fileDir = $userType . '/' . $orgId . '/' . $fileDir;
+            } elseif ($userType == 'system') {
+                $fileDir = $userType . '/' . $fileDir;
+            }
         }
 
         if (! $file) {
@@ -132,10 +155,31 @@ class UploadHelper
      * @throws FilesystemException
      * @throws Exception
      */
-    public function uploadImage(mixed $file, string $fileDir): array
+    public function uploadImage(mixed $file, string $fileDir, string $userType = 'org', int|string $orgId = 0): array
     {
         if (! $fileDir) {
             $fileDir = 'images';
+        }
+
+        // 根据当前用户类型，设置文件上传目录
+        if ($fileDir != 'tmp') {
+            if ($userType == 'user') {
+                if (empty($orgId)) {
+                    $request = Context::get(ServerRequestInterface::class);
+                    if (! empty($request)) {
+                        $orgId = $request->input('org_id', 0);
+                    }
+                }
+                $fileDir = $userType . '/' . $orgId . '/' . $fileDir;
+            } elseif ($userType == 'org') {
+                if (empty($orgId)) {
+                    $nowUser = contextGet('nowUser');
+                    ! empty($nowUser->org_id) && $orgId = $nowUser->org_id;
+                }
+                $fileDir = $userType . '/' . $orgId . '/' . $fileDir;
+            } elseif ($userType == 'system') {
+                $fileDir = $userType . '/' . $fileDir;
+            }
         }
 
         if (! $file) {
@@ -177,8 +221,29 @@ class UploadHelper
      * @throws GuzzleException
      * @throws Exception
      */
-    public function uploadRemoteFile(string $fileUrl, string $extension = '', string $folder = 'remote'): array
+    public function uploadRemoteFile(string $fileUrl, string $extension = '', string $folder = 'remote', string $userType = 'org', int|string $orgId = 0): array
     {
+        // 根据当前用户类型，设置文件上传目录
+        if ($folder != 'tmp') {
+            if ($userType == 'user') {
+                if (empty($orgId)) {
+                    $request = Context::get(ServerRequestInterface::class);
+                    if (! empty($request)) {
+                        $orgId = $request->input('org_id', 0);
+                    }
+                }
+                $folder = $userType . '/' . $orgId . '/' . $folder;
+            } elseif ($userType == 'org') {
+                if (empty($orgId)) {
+                    $nowUser = contextGet('nowUser');
+                    ! empty($nowUser->org_id) && $orgId = $nowUser->org_id;
+                }
+                $folder = $userType . '/' . $orgId . '/' . $folder;
+            } elseif ($userType == 'system') {
+                $folder = $userType . '/' . $folder;
+            }
+        }
+
         $clientHttp = new Client();
         $response = $clientHttp->get($fileUrl);
         $body = $response->getBody();
@@ -207,11 +272,33 @@ class UploadHelper
      * @param string $folder 文件目录
      * @throws FilesystemException
      */
-    public function uploadLocalFile(string $file, string $folder = 'contract', bool $unlink = false): array  //线上开启
+    public function uploadLocalFile(string $file, string $folder = 'contract', bool $unlink = false, string $userType = 'org', int|string $orgId = 0): array  //线上开启
     {
         if (! file_exists($file)) {
             return ApiHelper::genErrorData(CommonCode::UPLOAD_FILE_EMPTY);
         }
+
+        // 根据当前用户类型，设置文件上传目录
+        if ($folder != 'tmp') {
+            if ($userType == 'user') {
+                if (empty($orgId)) {
+                    $request = Context::get(ServerRequestInterface::class);
+                    if (! empty($request)) {
+                        $orgId = $request->input('org_id', 0);
+                    }
+                }
+                $folder = $userType . '/' . $orgId . '/' . $folder;
+            } elseif ($userType == 'org') {
+                if (empty($orgId)) {
+                    $nowUser = contextGet('nowUser');
+                    ! empty($nowUser->org_id) && $orgId = $nowUser->org_id;
+                }
+                $folder = $userType . '/' . $orgId . '/' . $folder;
+            } elseif ($userType == 'system') {
+                $folder = $userType . '/' . $folder;
+            }
+        }
+
         $extension = pathinfo($file, PATHINFO_EXTENSION);
         $uploadFile = 'upload/' . $folder . '/' . date('Ymd') . '/' . uniqid() . mt_rand(10000, 99999) . '.' . $extension;
         // Add local file
@@ -230,11 +317,33 @@ class UploadHelper
      * @param string $folder 文件目录
      * @throws FilesystemException
      */
-    public function uploadFileBase64(string $base64Content, string $extension, string $folder = 'tmp'): array  //线上开启
+    public function uploadFileBase64(string $base64Content, string $extension, string $folder = 'tmp', string $userType = 'org', int|string $orgId = 0): array  //线上开启
     {
         if (empty($base64Content)) {
             return ApiHelper::genErrorData(CommonCode::UPLOAD_FILE_EMPTY);
         }
+
+        // 根据当前用户类型，设置文件上传目录
+        if ($folder != 'tmp') {
+            if ($userType == 'user') {
+                if (empty($orgId)) {
+                    $request = Context::get(ServerRequestInterface::class);
+                    if (! empty($request)) {
+                        $orgId = $request->input('org_id', 0);
+                    }
+                }
+                $folder = $userType . '/' . $orgId . '/' . $folder;
+            } elseif ($userType == 'org') {
+                if (empty($orgId)) {
+                    $nowUser = contextGet('nowUser');
+                    ! empty($nowUser->org_id) && $orgId = $nowUser->org_id;
+                }
+                $folder = $userType . '/' . $orgId . '/' . $folder;
+            } elseif ($userType == 'system') {
+                $folder = $userType . '/' . $folder;
+            }
+        }
+
         $uploadFile = 'upload/' . $folder . '/' . date('Ymd') . '/' . uniqid() . mt_rand(10000, 99999) . '.' . $extension;
         $this->filesystemFactory->get($this->filesystemType)->write($uploadFile, base64_decode($base64Content));  // null  上传成功
         return ApiHelper::genSuccessData(['fileName' => $uploadFile, 'fileUrl' => fileDomain($uploadFile)]);
@@ -247,12 +356,34 @@ class UploadHelper
      * @throws FilesystemException
      * @throws Exception
      */
-    public function uploadLocalFilesystem(string $file, string $folder = 'contract', bool $unlink = false): array
+    public function uploadLocalFilesystem(string $file, string $folder = 'contract', bool $unlink = false, string $userType = 'org', int|string $orgId = 0): array
     {
         $localFile = $this->filesystemFactory->get('local')->fileExists($file);
         if (! $localFile) {
             throw new \Exception(CommonCode::UPLOAD_FILE_EMPTY->genI18nMsg(returnNowLang: true));
         }
+
+        // 根据当前用户类型，设置文件上传目录
+        if ($folder != 'tmp') {
+            if ($userType == 'user') {
+                if (empty($orgId)) {
+                    $request = Context::get(ServerRequestInterface::class);
+                    if (! empty($request)) {
+                        $orgId = $request->input('org_id', 0);
+                    }
+                }
+                $folder = $userType . '/' . $orgId . '/' . $folder;
+            } elseif ($userType == 'org') {
+                if (empty($orgId)) {
+                    $nowUser = contextGet('nowUser');
+                    ! empty($nowUser->org_id) && $orgId = $nowUser->org_id;
+                }
+                $folder = $userType . '/' . $orgId . '/' . $folder;
+            } elseif ($userType == 'system') {
+                $folder = $userType . '/' . $folder;
+            }
+        }
+
         $extension = pathinfo($file, PATHINFO_EXTENSION);
         $uploadFile = 'upload/' . $folder . '/' . date('Ymd') . '/' . uniqid() . mt_rand(10000, 99999) . '.' . $extension;
         // Add filesystem local file
@@ -291,6 +422,6 @@ class UploadHelper
                 ];
             }
         }
-        throw new Exception('操作异常');
+        throw new Exception(CommonCode::OPERATION_FAILED->genI18nMsg(returnNowLang: true));
     }
 }
