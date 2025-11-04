@@ -44,4 +44,18 @@ interface NoticeServiceInterface
      * @param string $count 事件统计值、
      */
     public function eventExpiredCount(int $orgId, int $uid, string $eventType, int $count): array;
+
+    /**
+     * 新增群聊.
+     * @param int $orgId 机构ID
+     * @param array $chatInfo 群聊信息
+     */
+    public function addChat(int $orgId, array $chatInfo): array;
+
+    /**
+     * 群聊添加额外信息.
+     * @param int $orgId 机构ID
+     * @param array $extra 额外信息
+     */
+    public function updateChatExtra(int $orgId, string $alias, int $businessId, array $extra): array;
 }

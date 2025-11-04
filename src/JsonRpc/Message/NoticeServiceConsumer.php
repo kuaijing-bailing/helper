@@ -85,4 +85,32 @@ class NoticeServiceConsumer extends AbstractServiceClient implements NoticeServi
             return ApiHelper::genServiceErrorData($this->serviceName, $exception);
         }
     }
+
+    /**
+     * 群聊添加额外信息.
+     *
+     * @param int $orgId 机构ID
+     */
+    public function addChat(int $orgId, array $chatInfo): array
+    {
+        try {
+            return $this->__request(__FUNCTION__, compact('orgId', 'chatInfo'));
+        } catch (\Exception $exception) {
+            return ApiHelper::genServiceErrorData($this->serviceName, $exception);
+        }
+    }
+
+    /**
+     * 群聊添加额外信息.
+     *
+     * @param int $orgId 机构ID
+     */
+    public function updateChatExtra(int $orgId, string $alias, int $businessId, array $extra): array
+    {
+        try {
+            return $this->__request(__FUNCTION__, compact('orgId', 'alias', 'businessId', 'extra'));
+        } catch (\Exception $exception) {
+            return ApiHelper::genServiceErrorData($this->serviceName, $exception);
+        }
+    }
 }

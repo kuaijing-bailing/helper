@@ -13,13 +13,9 @@ namespace Bailing\Aspect;
 use Bailing\Annotation\RateRequest;
 use Bailing\Constants\Code\Common\CommonCode;
 use Bailing\Helper\ApiHelper;
-use Bailing\Helper\RequestHelper;
 use Hyperf\Codec\Json;
-use Hyperf\Context\Context;
 use Hyperf\Di\Aop\AbstractAspect;
 use Hyperf\Di\Aop\ProceedingJoinPoint;
-use Hyperf\HttpMessage\Stream\SwooleStream;
-use Psr\Http\Message\ResponseInterface;
 
 class RateRequestAspect extends AbstractAspect
 {
@@ -44,8 +40,7 @@ class RateRequestAspect extends AbstractAspect
             }
         }
 
-        $classMethod = explode(':', RequestHelper::getAdminModule());
-
+        $handleArr = [];
         // 如果 rateKey 为空，
         if (empty($rateKey)) {
             $handleArr = request()->all();
@@ -68,8 +63,8 @@ class RateRequestAspect extends AbstractAspect
             }
         }
 
-        $handleArr['class'] = $classMethod[0];
-        $handleArr['method'] = $classMethod[1];
+        $handleArr['class'] = $proceedingJoinPoint->className;
+        $handleArr['method'] = $proceedingJoinPoint->methodName;
 
         $redis = redis();
         $strKey = 'rate_request:' . md5(serialize($handleArr));

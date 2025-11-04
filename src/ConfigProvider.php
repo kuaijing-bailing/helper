@@ -11,6 +11,7 @@ declare(strict_types=1);
 namespace Bailing;
 
 use Bailing\Aspect\RateRequestAspect;
+use Bailing\Aspect\RateWaitAspect;
 use Bailing\Listener\MainWorkerStartListener;
 use Bailing\Middleware\TranslationMiddleware;
 
@@ -21,6 +22,7 @@ class ConfigProvider
         return [
             'aspects' => [
                 RateRequestAspect::class,
+                RateWaitAspect::class,
             ],
             'dependencies' => [
                 \Bailing\IotCloud\HikCloud\Application::class => \Bailing\IotCloud\HikCloud\ApplicationFactory::class,
