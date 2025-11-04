@@ -49,7 +49,9 @@ class RuntimeFileClearJob extends AbstractJobHandler
                     $day = cfg('clear_cache_day') ?: 7;
                 }
                 if ($item['mTime'] < time() - $day * 86400) {
-                    stdLog()->info('清空缓存日志文件欲删除：', [$item['pathName'], date('Y-m-d H:i:s', $item['mTime'])]);
+                    if (! str_contains($item['pathName'], '/xxl_job/')) {
+                        stdLog()->info('清空缓存日志文件欲删除：', [$item['pathName'], date('Y-m-d H:i:s', $item['mTime'])]);
+                    }
                     if (@unlink($item['pathName'])) {
                         ++$clearCount;
                     }

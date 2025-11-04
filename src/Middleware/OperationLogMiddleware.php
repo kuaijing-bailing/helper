@@ -93,7 +93,8 @@ class OperationLogMiddleware implements MiddlewareInterface
             if ($keyLabel == 'ORG') {
                 $operationLog['org_id'] = $user_data['org_id'] ?: 0;
             }
-        } else {
+        } else if ($operationLog['service_name'] != 'user' || ! in_array($operationLog['router'], ['/login/reg', '/login/pwd', '/login/afterThird', '/changePassword'])) {
+            // user服务的登录接口，需要保存日志
             return $result;
         }
 
