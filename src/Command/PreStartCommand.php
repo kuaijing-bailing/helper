@@ -23,6 +23,7 @@ class PreStartCommand extends HyperfCommand
 
     public function handle()
     {
+        $this->call('migrate', ['--path' => './vendor/bailing/helper/src/migrations']);
         $this->call('migrate');
     }
 }

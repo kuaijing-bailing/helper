@@ -51,31 +51,13 @@ class MainWorkerStartListener implements ListenerInterface
             return;
         }
 
-        // 初始化配置表
-        OrgConfigHelper::createTable();
-
-        // 初始化数据多语言表
-        TranslationHelper::createTable();
-
-        // 初始化I18n、Dict多语言表
-        I18nTranslationHelper::createTable();
-
-        // 初始化审批流程表
-        ApprovalProcessHelper::createCategoryTable();
-        ApprovalProcessHelper::createTable();
-
-        // 拓展字段表
-        ExtraFieldsHelper::createExtraFieldsTable();
-
-        // 生产环境，执行下 preStart，初始下sql语句
-        if (! isDevEnv()) {
-            $input = new ArrayInput(['command' => 'preStart']);
-            $output = new ConsoleOutput();
-            $application = container()->get(ApplicationInterface::class);
-            $application->setAutoExit(false);
-            $exitCode = $application->run($input, $output);
-            stdLog()->info('preStart result：', [$exitCode]);
-        }
+        // 初始下sql语句
+        $input = new ArrayInput(['command' => 'preStart']);
+        $output = new ConsoleOutput();
+        $application = container()->get(ApplicationInterface::class);
+        $application->setAutoExit(false);
+        $exitCode = $application->run($input, $output);
+        stdLog()->info('preStart result：', [$exitCode]);
 
         // 扫描数据表字段的redis缓存，且删除掉
         redisDelByPattern('database_table_column_type:*');
