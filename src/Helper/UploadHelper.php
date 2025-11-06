@@ -10,6 +10,7 @@ declare(strict_types=1);
  */
 namespace Bailing\Helper;
 
+use Carbon\Carbon;
 use Exception;
 use GuzzleHttp\Client;
 use GuzzleHttp\Exception\GuzzleException;
@@ -246,7 +247,7 @@ class UploadHelper
     }
 
     /**
-     * 下载腾讯云文件至本地(服务应用内部调用).
+     * 下载云文件至本地(服务应用内部调用).
      * @throws FilesystemException
      * @throws Exception
      */
@@ -268,5 +269,22 @@ class UploadHelper
             }
         }
         throw new Exception('操作异常');
+    }
+
+    /**
+     * 生成临时链接(服务应用内部调用)，默认20分钟.
+     * @throws FilesystemException
+     * @throws Exception
+     */
+    public function temporaryUrl(string $fileUrl, int $expire = 1200): string
+    {
+        $fileUrl = relativePath($fileUrl);
+
+        // 不是后台配置存储桶的链接，则直接返回
+        if (str_starts_with($fileUrl, 'http')) {
+            return $fileUrl;
+        }
+
+        return $this->filesystemFactory->get($this->filesystemType)->temporaryUrl($fileUrl, Carbon::createFromTimestamp(time() + $expire));
     }
 }

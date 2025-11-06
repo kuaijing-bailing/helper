@@ -10,6 +10,8 @@ declare(strict_types=1);
  */
 namespace Bailing\Filesystem\Minio;
 
+use DateTimeInterface;
+
 class Minio
 {
     public const CODE_SUCCESS = 200;
@@ -141,6 +143,18 @@ class Minio
     {
         $uri = $this->bucket . DIRECTORY_SEPARATOR . $uri;
         return $this->endpoint . $uri;
+    }
+
+    /**
+     * 获取临时文件链接.
+     * @param string $uri 保存路径名称
+     * @param int|string|DateTimeInterface $expiration 过期时间
+     * @return string
+     */
+    public function getTemporaryUrl(string $uri, DateTimeInterface|int|string $expiration): string
+    {
+        $uri = $this->bucket . DIRECTORY_SEPARATOR . $uri;
+        return $this->endpoint . $uri . '?X-Amz-Expires=' . $expiration;
     }
 
     /**

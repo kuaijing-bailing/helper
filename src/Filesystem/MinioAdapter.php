@@ -11,6 +11,7 @@ declare(strict_types=1);
 namespace Bailing\Filesystem;
 
 use Bailing\Filesystem\Minio\Minio;
+use DateTimeInterface;
 use League\Flysystem\Config;
 use League\Flysystem\DirectoryAttributes;
 use League\Flysystem\FileAttributes;
@@ -19,6 +20,7 @@ use League\Flysystem\PathPrefixer;
 use League\Flysystem\UnableToCopyFile;
 use League\Flysystem\UnableToDeleteDirectory;
 use League\Flysystem\UnableToDeleteFile;
+use League\Flysystem\UnableToGenerateTemporaryUrl;
 use League\Flysystem\UnableToReadFile;
 use League\Flysystem\UnableToRetrieveMetadata;
 use League\Flysystem\UnableToWriteFile;
@@ -269,13 +271,28 @@ class MinioAdapter implements FilesystemAdapter
         return $this->minio->getObjectUrl($prefixedPath);
     }
 
-    public function getTemporaryUrl($path, int|string|\DateTimeInterface $expiration): string
+    public function temporaryUrl(string $path, DateTimeInterface $expiresAt, Config $config): string
+    {
+        $expiration = $expiresAt->getTimestamp();
+
+        try {
+            return $this->getSignedUrl($path, $expiration);
+        } catch (\Throwable $exception) {
+            throw UnableToGenerateTemporaryUrl::dueToError($path, $exception);
+        }
+    }
+
+    public function getTemporaryUrl(string $path, $expiration): string
     {
         if ($expiration instanceof \DateTimeInterface) {
             $expiration = $expiration->getTimestamp();
         }
 
-        return $this->getSignedUrl($path, $expiration);
+        try {
+            return $this->getSignedUrl($path, $expiration);
+        } catch (\Throwable $exception) {
+            throw UnableToGenerateTemporaryUrl::dueToError($path, $exception);
+        }
     }
 
     public function getSignedUrl(string $path, int|string $expires = '+60 minutes'): string
@@ -286,7 +303,7 @@ class MinioAdapter implements FilesystemAdapter
             $expires = \date('Y-m-d H:i:s', $expires);
         }
 
-        return $this->getObjectClient()->getObjectSignedUrl($prefixedPath, $expires);
+        return $this->minio->getTemporaryUrl($prefixedPath, $expires);
     }
 
     public function getObjectClient(): ObjectClient
