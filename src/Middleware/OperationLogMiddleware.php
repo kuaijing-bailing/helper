@@ -72,6 +72,7 @@ class OperationLogMiddleware implements MiddlewareInterface
             'request_data' => $this->request->all(),
             'response_code' => $result->getStatusCode(),
             'response_data' => $isDownload ? '文件下载' : $result->getBody()->getContents(),
+            'response_time' => getTime(),
         ];
 
         $keyLabel = '';
