@@ -8,11 +8,11 @@ declare(strict_types=1);
  * @document https://help.kuaijingai.com
  * @contact  www.kuaijingai.com 7*12 9:00-21:00
  */
+
 namespace Bailing\Helper;
 
 use Bailing\Constants\Code\Common\CommonCode;
 use Carbon\Carbon;
-use Exception;
 use GuzzleHttp\Client;
 use GuzzleHttp\Exception\GuzzleException;
 use Hyperf\Context\Context;
@@ -86,7 +86,7 @@ class UploadHelper
     /**
      * 上传文件.
      * @throws FilesystemException
-     * @throws Exception
+     * @throws \Exception
      */
     public function uploadFile(mixed $file, string $fileDir, string $userType = 'org', int|string $orgId = 0): array
     {
@@ -144,7 +144,7 @@ class UploadHelper
             fclose($stream);
         }
 
-        //为了后续纠出传不合法文件人的信息，记入日志。
+        // 为了后续纠出传不合法文件人的信息，记入日志。
         logger()->info('uploadFile' . $fileName, request()->getHeaders());
 
         return ['fileName' => $fileName, 'fileUrl' => fileDomain($fileName)];
@@ -154,7 +154,7 @@ class UploadHelper
      * 上传图片.
      * @param mixed $fileDir
      * @throws FilesystemException
-     * @throws Exception
+     * @throws \Exception
      */
     public function uploadImage(mixed $file, string $fileDir, string $userType = 'org', int|string $orgId = 0): array
     {
@@ -208,7 +208,7 @@ class UploadHelper
             fclose($stream);
         }
 
-        //为了后续纠出传不合法文件人的信息，记入日志。
+        // 为了后续纠出传不合法文件人的信息，记入日志。
         logger()->info('uploadImage' . $fileName);
 
         return ['fileName' => $fileName, 'fileUrl' => fileDomain($fileName)];
@@ -220,7 +220,7 @@ class UploadHelper
      * @param string $folder 文件目录
      * @throws FilesystemException
      * @throws GuzzleException
-     * @throws Exception
+     * @throws \Exception
      */
     public function uploadRemoteFile(string $fileUrl, string $extension = '', string $folder = 'remote', string $userType = 'org', int|string $orgId = 0): array
     {
@@ -245,18 +245,18 @@ class UploadHelper
             }
         }
 
-        $clientHttp = new Client();
+        $clientHttp = new Client(['verify' => false]);
         $response = $clientHttp->get($fileUrl);
         $body = $response->getBody();
 
         if ($response->getStatusCode() != 200) {
-            throw new Exception(sprintf('文件下载失败（错误码%s）', $response->getStatusCode()));
+            throw new \Exception(sprintf('文件下载失败（错误码%s）', $response->getStatusCode()));
         }
 
-        //获取响应体，对象
+        // 获取响应体，对象
         $fileStr = (string) $body;
 
-        //没有指定上传保存扩展名，通过链接获取
+        // 没有指定上传保存扩展名，通过链接获取
         if (! $extension) {
             $extension = pathinfo($fileUrl, PATHINFO_EXTENSION);
         }
@@ -273,7 +273,7 @@ class UploadHelper
      * @param string $folder 文件目录
      * @throws FilesystemException
      */
-    public function uploadLocalFile(string $file, string $folder = 'contract', bool $unlink = false, string $userType = 'org', int|string $orgId = 0): array  //线上开启
+    public function uploadLocalFile(string $file, string $folder = 'contract', bool $unlink = false, string $userType = 'org', int|string $orgId = 0): array  // 线上开启
     {
         if (! file_exists($file)) {
             return ApiHelper::genErrorData(CommonCode::UPLOAD_FILE_EMPTY);
@@ -303,7 +303,7 @@ class UploadHelper
         $extension = pathinfo($file, PATHINFO_EXTENSION);
         $uploadFile = 'upload/' . $folder . '/' . date('Ymd') . '/' . uniqid() . mt_rand(10000, 99999) . '.' . $extension;
         // Add local file
-        $stream = fopen($file, 'r+'); //fopen得打开本地决对路径
+        $stream = fopen($file, 'r+'); // fopen得打开本地决对路径
         $this->filesystemFactory->get($this->filesystemType)->writeStream($uploadFile, $stream); // null  上传成功
         if (is_resource($stream)) {
             fclose($stream);
@@ -318,7 +318,7 @@ class UploadHelper
      * @param string $folder 文件目录
      * @throws FilesystemException
      */
-    public function uploadFileBase64(string $base64Content, string $extension, string $folder = 'tmp', string $userType = 'org', int|string $orgId = 0): array  //线上开启
+    public function uploadFileBase64(string $base64Content, string $extension, string $folder = 'tmp', string $userType = 'org', int|string $orgId = 0): array  // 线上开启
     {
         if (empty($base64Content)) {
             return ApiHelper::genErrorData(CommonCode::UPLOAD_FILE_EMPTY);
@@ -355,7 +355,7 @@ class UploadHelper
      * @param mixed $file doc/1640071827.docx
      * @param string $folder 文件目录
      * @throws FilesystemException
-     * @throws Exception
+     * @throws \Exception
      */
     public function uploadLocalFilesystem(string $file, string $folder = 'contract', bool $unlink = false, string $userType = 'org', int|string $orgId = 0): array
     {
@@ -388,8 +388,8 @@ class UploadHelper
         $extension = pathinfo($file, PATHINFO_EXTENSION);
         $uploadFile = 'upload/' . $folder . '/' . date('Ymd') . '/' . uniqid() . mt_rand(10000, 99999) . '.' . $extension;
         // Add filesystem local file
-        $localStream = $this->filesystemFactory->get('local')->read($file); //不含下载目录的filesystem local文件路径 二进制流
-        $this->filesystemFactory->get($this->filesystemType)->write($uploadFile, $localStream); //相应判断文件应fileExists  null 写入成功
+        $localStream = $this->filesystemFactory->get('local')->read($file); // 不含下载目录的filesystem local文件路径 二进制流
+        $this->filesystemFactory->get($this->filesystemType)->write($uploadFile, $localStream); // 相应判断文件应fileExists  null 写入成功
         if ($unlink) {
             $this->filesystemFactory->get('local')->delete($file);
         }
@@ -399,14 +399,14 @@ class UploadHelper
     /**
      * 下载云文件至本地(服务应用内部调用).
      * @throws FilesystemException
-     * @throws Exception
+     * @throws \Exception
      */
     public function downLoadFile(string $file, string $folder = 'contract', string $fileName = ''): array
     {
         $file = relativePath($file);
         $cosFileIsset = $this->filesystemFactory->get($this->filesystemType)->readStream($file);
         if ($cosFileIsset) {
-            $cosStream = $this->filesystemFactory->get($this->filesystemType)->read($file); //二进制流
+            $cosStream = $this->filesystemFactory->get($this->filesystemType)->read($file); // 二进制流
             if (! $fileName) {
                 $extension = pathinfo($file, PATHINFO_EXTENSION);
                 $fileName = uniqid() . mt_rand(10000, 99999) . '.' . $extension;
@@ -423,13 +423,13 @@ class UploadHelper
                 ];
             }
         }
-        throw new Exception(CommonCode::OPERATION_FAILED->genI18nMsg(returnNowLang: true));
+        throw new \Exception(CommonCode::OPERATION_FAILED->genI18nMsg(returnNowLang: true));
     }
 
     /**
      * 生成临时链接(服务应用内部调用)，默认20分钟.
      * @throws FilesystemException
-     * @throws Exception
+     * @throws \Exception
      */
     public function temporaryUrl(string $fileUrl, int $expire = 1200): string
     {
