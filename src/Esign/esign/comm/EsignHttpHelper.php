@@ -73,10 +73,11 @@ class EsignHttpHelper
         $buildSignAndJsonHeader = self::buildSignAndJsonHeader($projectId, $contentMd5, $accept, $contentType, 'Signature');
 
         //对url做排序
-        self::querySort($url);
+        $url = self::querySort($url);
+
         //传入生成的bodyMd5,加上其他请求头部信息拼接成字符串,整体做sha256签名
         $reqSignature = EsignUtilHelper::getSignature($secret, $reqType, $accept, $contentType, $contentMd5, '', '', $url);
-        array_push($buildSignAndJsonHeader, 'X-Tsign-Open-Ca-Signature:' . $reqSignature);
+        $buildSignAndJsonHeader[] = 'X-Tsign-Open-Ca-Signature:' . $reqSignature;
         return $buildSignAndJsonHeader;
     }
 

@@ -26,11 +26,6 @@ class EsignLogHelper
 
     public static function printMsg($msg)
     {
-        echo '<pre/>';
-        if (is_array($msg) || is_object($msg)) {
-            var_dump($msg);
-        } else {
-            echo $msg . "\n";
-        }
+        stdLog()->info('EsignLog printMsg', ['msg' => $msg]);
     }
 }
