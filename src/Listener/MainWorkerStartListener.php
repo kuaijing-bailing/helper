@@ -96,7 +96,7 @@ class MainWorkerStartListener implements ListenerInterface
         if (env('XXL_JOB_ENABLE') === true) {
             stdLog()->info('xxl-job is enable');
             $XxlJobTaskHelper = new XxlJobTaskHelper();
-            $XxlJobTaskHelper->build(true);
+            $XxlJobTaskHelper->build();
         }
 
         // 初始化创建 rabbit-mq vhost

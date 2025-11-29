@@ -40,6 +40,8 @@ class XxlJobTask extends AbstractAnnotation
 
     public int $jobRetry = 0; //失败重试次数
 
+    public bool $autoStart = true; // 是否自动启动
+
     public function __construct(
         string $xxlVersion = '2.3.0',
         string $author = '机器注册(bailing)',
@@ -50,7 +52,8 @@ class XxlJobTask extends AbstractAnnotation
         string $jobParam = '',
         string $routeStrategy = '',
         int $jobTimeout = 0,
-        int $jobRetry = 0
+        int $jobRetry = 0,
+        bool $autoStart = true
     ) {
         $this->xxlVersion = $xxlVersion;
         $this->author = $author;
@@ -62,5 +65,6 @@ class XxlJobTask extends AbstractAnnotation
         $this->routeStrategy = $routeStrategy;
         $this->jobTimeout = $jobTimeout;
         $this->jobRetry = $jobRetry;
+        $this->autoStart = $autoStart;
     }
 }
