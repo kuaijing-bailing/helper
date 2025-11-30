@@ -20,7 +20,7 @@ return new class() extends Migration
                 $table->string('alias')->default('')->comment('审批类别别名')->index();
                 $table->string('source_txt')->default('')->comment('添加模板的应用/模块名称');
                 $table->json('i18n_source_txt')->nullable()->comment('添加模板的应用/模块名称多语言');
-                $table->integer('cate_sort')->default(0)->comment('排序')->after('i18n_source_txt');
+                $table->integer('cate_sort')->default(0)->comment('排序');
 
                 $table->string('created_name', 100)->default('')->comment('创建数据的人员名字');
                 $table->string('updated_name', 100)->default('')->comment('最后修改数据的人员名字');
