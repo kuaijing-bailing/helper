@@ -12,7 +12,6 @@ namespace Bailing;
 
 use Bailing\Aspect\RateRequestAspect;
 use Bailing\Aspect\RateWaitAspect;
-use Bailing\Listener\MainWorkerStartListener;
 use Bailing\Middleware\TranslationMiddleware;
 
 class ConfigProvider
@@ -30,7 +29,6 @@ class ConfigProvider
                 \Bailing\IotCloud\Ys7\Application::class => \Bailing\IotCloud\Ys7\ApplicationFactory::class,
             ],
             'listeners' => [
-                MainWorkerStartListener::class,
             ],
             'commands' => [
             ],
