@@ -170,7 +170,7 @@ abstract class Excel
         // 批量替换字典
         $dictNameArr = arrayColumnUnique($this->property, 'dictName');
         if (! empty($dictNameArr)) {
-            $dictResult = container()->get(OrgUserServiceInterface::class)->call('getSystemDictData', ['org_id' => $this->orgId, 'typeArr' => $dictNameArr]);
+            $dictResult = container()->get(OrgUserServiceInterface::class)->call('getSystemDictData', ['org_id' => $this->orgId, 'typeArr' => $dictNameArr, 'checkedBuild' => getCheckedBuild()]);
             if (empty($dictResult['data']['list'])) {
                 throw new \Exception('Dict is empty, please check');
             }
