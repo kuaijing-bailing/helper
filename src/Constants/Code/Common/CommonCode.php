@@ -142,4 +142,7 @@ enum CommonCode: int implements EnumCodeInterface
 
     #[EnumCode(msg: '[技术错误]如果请求参数为空，则需要先引用鉴权登录的中间件生成协程中的用户信息', i18nMsg: ['en' => '[Technical error] If the request parameter is empty, you need to reference the authentication login middleware to generate the user information in the coroutine', 'zh_tw' => '[技術錯誤]如果請求參數為空，則需要先引用認證登錄的中間件生成協程中的用戶信息', 'zh_hk' => '[技術錯誤]如果請求參數為空，則需要先引用認證登錄的中間件生成協程中的用戶信息', 'ja' => '[技術エラー]リクエストパラメータが空の場合は、認証ログインミドルウェアを参照して、コルーチン内のユーザー情報を生成する必要があります'])]
     case RATE_REQUEST_PARAMS_EMPTY = 42;
+
+    #[EnumCode(msg: '操作提示', i18nMsg: ['en' => 'Operation tip', 'zh_tw' => '操作提示', 'zh_hk' => '操作提示', 'ja' => '操作提示'])]
+    case PAGE_TIP = 43;
 }

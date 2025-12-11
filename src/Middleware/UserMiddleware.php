@@ -36,8 +36,8 @@ class UserMiddleware implements MiddlewareInterface
             return $handler->handle($request);
         }
 
-        // 未登录，或登录状态超过14天
-        if (! $jwtData || time() - $jwtData->iat > 86400 * (cfg('user_login_expire_day') ?: 14)) {
+        // 未登录，或登录状态超过30分钟
+        if (! $jwtData || time() - $jwtData->iat > 60 * (cfg('user_login_expire_time') ?: 30)) {
             return self::json(CommonCode::NEED_LOGIN);
         }
 

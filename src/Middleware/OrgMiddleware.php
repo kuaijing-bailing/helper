@@ -70,10 +70,10 @@ class OrgMiddleware implements MiddlewareInterface
             }
             //针对单个接口继承多个服务中间件鉴权 则只校验本服务token-type的token 其他服务则放行
         }
-        if (! $jwtData) { // 未登录，或登录状态超过14天
+        if (! $jwtData) { // 未登录，或登录状态超过30分钟
             return self::json(CommonCode::NEED_LOGIN);
         }
-        if (time() - $jwtData->iat > 86400 * (cfg('org_login_expire_day') ?: 14)) { // 未登录，或登录状态超过14天
+        if (time() - $jwtData->iat > 60 * (cfg('org_login_expire_time') ?: 30)) { // 未登录，或登录状态超过30分钟
             return self::json(CommonCode::LOGIN_EXPIRED);
         }
 
