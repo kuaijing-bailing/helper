@@ -40,6 +40,14 @@ class ConfigProvider
                     TranslationMiddleware::class,
                 ],
             ],
+            'publish' => [
+                [
+                    'id' => 'config',
+                    'description' => 'The config for webhook.',
+                    'source' => __DIR__ . '/../publish/webhook.php',
+                    'destination' => BASE_PATH . '/config/autoload/webhook.php',
+                ],
+            ],
             'annotations' => [
                 'scan' => [
                     'paths' => [

@@ -17,6 +17,7 @@ use Bailing\Helper\ExtraField\ExtraFieldsHelper;
 use Bailing\Helper\Intl\I18nTranslationHelper;
 use Bailing\Helper\OrgConfigHelper;
 use Bailing\Helper\TranslationHelper;
+use Bailing\Helper\Webhook\WebhookInvokeHelper;
 use Bailing\Helper\XxlJobTaskHelper;
 use GuzzleHttp\Client;
 use GuzzleHttp\Exception\GuzzleException;
@@ -46,7 +47,7 @@ class MainWorkerStartListener implements ListenerInterface
 
     public function process(object $event): void
     {
-        // 初始下sql语句
+        // 初始bailing包的sql语句
         $input = new ArrayInput(['command' => 'preStart']);
         $output = new ConsoleOutput();
         $application = container()->get(ApplicationInterface::class);
@@ -118,5 +119,13 @@ class MainWorkerStartListener implements ListenerInterface
 
         // i18n国际化上报
         (new I18nTranslationReportHelper())->build();
+
+        // webhook服务注册
+        stdLog()->info('registerServiceWebhook');
+        (new WebhookInvokeHelper())->registerServiceWebhook();
+
+        // webhook服务注册node节点
+        stdLog()->info('registerServiceWebhookNode');
+        (new WebhookInvokeHelper())->registerServiceWebhookNode();
     }
 }
