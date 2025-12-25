@@ -285,6 +285,8 @@ class UploadHelper
             return $fileUrl;
         }
 
+        $fileUrl = fileDomain($fileUrl);
+
         return $this->filesystemFactory->get($this->filesystemType)->temporaryUrl($fileUrl, Carbon::createFromTimestamp(time() + $expire));
     }
 }
