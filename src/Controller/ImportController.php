@@ -27,13 +27,13 @@ class ImportController
     {
         $alias = request()->input('alias');
         if (empty($alias)) {
-            return ApiHelper::genErrorData('缺少参数alias');
+            return ApiHelper::genSuccessData([]);
         }
         $nowAdmin = contextGet('nowUser');
 
         $config = OrgConfigHelper::getConfig($nowAdmin->org_id, $alias);
         if (empty($config)) {
-            return ApiHelper::genErrorData('配置不存在');
+            return ApiHelper::genSuccessData([]);
         }
         $configArr = Json::decode($config);
 
