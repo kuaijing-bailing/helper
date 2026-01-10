@@ -85,10 +85,10 @@ class PayServiceConsumer extends AbstractServiceClient implements PayServiceInte
      * @param float $refundMoney 退款金额
      * @param string $remark 备注
      */
-    public function refundOrderMoney(string $orderId, float $refundMoney, string $remark): array
+    public function refundOrderMoney(string $orderId, float $refundMoney, string $remark, array $extra = []): array
     {
         try {
-            return $this->__request(__FUNCTION__, compact('orderId', 'refundMoney', 'remark'));
+            return $this->__request(__FUNCTION__, compact('orderId', 'refundMoney', 'remark', 'extra'));
         } catch (\Exception $exception) {
             return ApiHelper::genServiceErrorData($this->serviceName, $exception);
         }

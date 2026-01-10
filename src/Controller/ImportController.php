@@ -59,13 +59,13 @@ class ImportController
     {
         $alias = request()->input('alias');
         if (empty($alias)) {
-            return ApiHelper::genErrorData(CommonCode::PARAM_ERROR);
+            return ApiHelper::genSuccessData([]);
         }
         $nowAdmin = contextGet('nowUser');
 
         $config = OrgConfigHelper::getConfig($nowAdmin->org_id, $alias);
         if (empty($config)) {
-            return ApiHelper::genErrorData(CommonCode::PARAM_ERROR);
+            return ApiHelper::genSuccessData([]);
         }
         $configArr = Json::decode($config);
 

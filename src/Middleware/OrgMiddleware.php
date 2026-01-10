@@ -77,23 +77,6 @@ class OrgMiddleware implements MiddlewareInterface
             return self::json(CommonCode::LOGIN_EXPIRED);
         }
 
-        try {
-            $redisUserClient = redis('user');
-            if ($redisUserClient->exists('user_status_' . $jwtData->data->id) && $redisUserClient->get('user_status_' . $jwtData->data->id) == 'deleted') {
-                return self::json(CommonCode::USER_NOT_EXITS);
-            }
-        } catch (\Exception $exception) {
-            stdLog()->debug('USER REDIS CLIENT ERROR', ['module' => RequestHelper::getAdminModule()]);
-        }
-        try {
-            $redisOrgClient = redis('org');
-            if ($redisOrgClient->exists('org_user_status_' . $jwtData->data->id) && $redisOrgClient->get('org_user_status_' . $jwtData->data->id) == 'deleted') {
-                return self::json(CommonCode::USER_NOT_IN_ORG);
-            }
-        } catch (\Exception $exception) {
-            stdLog()->debug('ORG REDIS CLIENT ERROR', ['module' => RequestHelper::getAdminModule()]);
-        }
-
         if (! empty($jwtData->data->intranet_access) && ! RequestHelper::isLocalNetwork()) {
             return self::json(CommonCode::VISIT_NEED_INTRANET->genI18nMsg(['ip' => RequestHelper::getClientIp()]));
         }

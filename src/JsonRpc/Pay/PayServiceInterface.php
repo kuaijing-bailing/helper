@@ -44,7 +44,7 @@ interface PayServiceInterface
      * @param float $refundMoney 退款订单金额
      * @param string $remark 备注
      */
-    public function refundOrderMoney(string $orderId, float $refundMoney, string $remark): array;
+    public function refundOrderMoney(string $orderId, float $refundMoney, string $remark, array $extra = []): array;
 
     /**
      * 获取支付宝应用appid对应的密钥，一般只有third服务在支付授权时使用.

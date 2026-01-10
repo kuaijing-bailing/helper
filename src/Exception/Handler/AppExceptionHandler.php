@@ -46,6 +46,13 @@ class AppExceptionHandler extends ExceptionHandler
         if (FeishuHelper::checkConfig()) {
             $request = request();
             $nowUser = (array) (contextGet('nowUser') ?: []);
+
+            // 读取子系统信息
+            $checkedSubSystemAlias = getCheckedSubSystemAlias();
+            if (! empty($checkedSubSystemAlias)) {
+                $errMsg = sprintf('（子系统：%s）%s', $checkedSubSystemAlias, $errMsg);
+            }
+
             FeishuHelper::sendMarkDown('php线上代码错误（' . RequestHelper::getClientDomain() . '）', [
                 [[
                     'tag' => 'text',
@@ -53,7 +60,7 @@ class AppExceptionHandler extends ExceptionHandler
                 ]],
                 [[
                     'tag' => 'text',
-                    'text' => sprintf('报错时间：[%s]', getTime()),
+                    'text' => sprintf('报错时间：%s', getTime()),
                 ]],
                 [[
                     'tag' => 'text',

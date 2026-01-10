@@ -145,4 +145,7 @@ enum CommonCode: int implements EnumCodeInterface
 
     #[EnumCode(msg: '操作提示', i18nMsg: ['en' => 'Operation tip', 'zh_tw' => '操作提示', 'zh_hk' => '操作提示', 'ja' => '操作提示'])]
     case PAGE_TIP = 43;
+
+    #[EnumCode(msg: '该用户已登出，请重新登录', i18nMsg: ['en' => 'The user has logged out, please log in again', 'zh_tw' => '該用戶已登出，請重新登錄', 'zh_hk' => '該用戶已登出，請重新登錄', 'ja' => 'ユーザーはログアウトしました。再度ログインしてください。'])]
+    case USER_IS_LOGOUT = 44;
 }
