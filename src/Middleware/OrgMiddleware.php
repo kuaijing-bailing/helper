@@ -94,6 +94,16 @@ class OrgMiddleware implements MiddlewareInterface
             stdLog()->debug('ORG REDIS CLIENT ERROR', ['module' => RequestHelper::getAdminModule()]);
         }
 
+        try {
+            $redisOrgClient = redis('org');
+            $redisKey = sprintf('org_jwt_ticket_status:%s:%s:%s', $jwtData?->data?->org_id ?? '', $jwtData?->data?->id ?? '', $jwtData?->data?->token_ticket ?? '');
+            if ($redisOrgClient->exists($redisKey) && $redisOrgClient->get($redisKey) == 'logout') {
+                return self::json(CommonCode::USER_IS_LOGOUT);
+            }
+        } catch (\Exception $exception) {
+            stdLog()->debug('ORG REDIS CLIENT ERROR', ['module' => RequestHelper::getAdminModule()]);
+        }
+
         if (! empty($jwtData->data->intranet_access) && ! RequestHelper::isLocalNetwork()) {
             return self::json(CommonCode::VISIT_NEED_INTRANET->genI18nMsg(['ip' => RequestHelper::getClientIp()]));
         }
