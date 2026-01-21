@@ -8,6 +8,7 @@ declare(strict_types=1);
  * @document https://help.kuaijingai.com
  * @contact  www.kuaijingai.com 7*12 9:00-21:00
  */
+
 namespace Bailing\JsonRpc\Third;
 
 interface ThirdServiceInterface
@@ -64,4 +65,9 @@ interface ThirdServiceInterface
      * 获取openid.
      */
     public function getOpenidByUserid(int $orgId, int $userId): array;
+
+    /**
+     * 根据appid获取accesstoken.
+     */
+    public function getWechatAccessToken(string $appid): array;
 }

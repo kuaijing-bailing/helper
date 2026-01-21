@@ -8,6 +8,7 @@ declare(strict_types=1);
  * @document https://help.kuaijingai.com
  * @contact  www.kuaijingai.com 7*12 9:00-21:00
  */
+
 namespace Bailing\JsonRpc\Third;
 
 use Bailing\Helper\ApiHelper;
@@ -136,6 +137,18 @@ class ThirdServiceConsumer extends AbstractServiceClient implements ThirdService
     {
         try {
             return $this->__request(__FUNCTION__, compact('orgId', 'userId'));
+        } catch (\Exception $exception) {
+            return ApiHelper::genServiceErrorData($this->serviceName, $exception);
+        }
+    }
+
+    /**
+     * 根据appid获取accesstoken.
+     */
+    public function getWechatAccessToken(string $appid): array
+    {
+        try {
+            return $this->__request(__FUNCTION__, compact('appid'));
         } catch (\Exception $exception) {
             return ApiHelper::genServiceErrorData($this->serviceName, $exception);
         }
