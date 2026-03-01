@@ -33,6 +33,7 @@ class WorkTaskServiceConsumer extends AbstractServiceClient implements WorkTaskS
             }
             return $this->__request(__FUNCTION__, compact('method', 'param'));
         } catch (\Exception $exception) {
+            stdLog()->warning('WorkTaskServiceConsumer Error', ['method' => $method, 'param' => $param]);
             return ApiHelper::genServiceErrorData($this->serviceName, $exception);
         }
     }

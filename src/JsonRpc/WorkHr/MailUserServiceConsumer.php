@@ -33,6 +33,7 @@ class MailUserServiceConsumer extends AbstractServiceClient implements MailUserS
         try {
             return $this->__request(__FUNCTION__, compact('data'));
         } catch (\Exception $exception) {
+            stdLog()->warning('MailUserServiceConsumer Error', ['method' => __FUNCTION__, 'param' => $data]);
             return ApiHelper::genServiceErrorData($this->serviceName, $exception);
         }
     }

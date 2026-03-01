@@ -30,7 +30,7 @@ use Hyperf\HttpServer\Annotation\PutMapping;
 class %CLASS%Controller extends AbstractController
 {
     #[PostMapping(path: '%ROUTER%/query')]
-    #[OrgPermission(module: '', action: 'list', icon: '', alias: '', url: '', sort: 0, app: '')]
+    #[OrgPermission(module: '%MODULE%', action: 'list', icon: '', i18nName: %MODULE_I18N%, alias: '', url: '', sort: 0, app: '')]
     public function list(): array
     {
         $post = validateForm(%CLASS%Request::class, 'list', %CLASS%::class);
@@ -66,7 +66,7 @@ class %CLASS%Controller extends AbstractController
 
     #[PostMapping(path: '%ROUTER%')]
     #[RateRequest]
-    #[OrgPermission(module: '', action: 'add')]
+    #[OrgPermission(module: '%MODULE%', action: 'add')]
     public function add(): array
     {
         return self::editHandle();
@@ -74,7 +74,7 @@ class %CLASS%Controller extends AbstractController
 
     #[PutMapping(path: '%ROUTER%/{id:\d+}')]
     #[RateRequest(rateKey: 'id')]
-    #[OrgPermission(module: '', action: 'edit')]
+    #[OrgPermission(module: '%MODULE%', action: 'edit')]
     public function edit(?int $id): array
     {
         return self::editHandle($id);
@@ -104,7 +104,7 @@ class %CLASS%Controller extends AbstractController
     }
 
     #[GetMapping(path: '%ROUTER%/{id:\d+}')]
-    #[OrgPermission(module: '', action: 'detail')]
+    #[OrgPermission(module: '%MODULE%', action: 'detail')]
     public function detail(int $id): array
     {
         $get = validateForm(%CLASS%Request::class, 'detail', %CLASS%::class);
@@ -121,7 +121,7 @@ class %CLASS%Controller extends AbstractController
 
     #[DeleteMapping(path: '%ROUTER%/{id:\d+}')]
     #[RateRequest(rateKey: 'id')]
-    #[OrgPermission(module: '', action: 'delete')]
+    #[OrgPermission(module: '%MODULE%', action: 'delete')]
     public function delete(int $id): array
     {
         $get = validateForm(%CLASS%Request::class, 'delete', %CLASS%::class);
@@ -136,7 +136,7 @@ class %CLASS%Controller extends AbstractController
         // todo...（如果没有子数据，请移除此段代码。如果需要连带子数据一并删除，请另外编写代码）本行代码必须移除
         // 存在子数据，不允许删除
         if (SubData::query()->where(['cat_id' => $detail->id])->first()) {
-            return ApiHelper::genErrorData('请先删除子数据后，再删除此数据');
+            return ApiHelper::genErrorData(CommonCode::HAS_SUB_DATA);
         }
         **/
 
