@@ -33,6 +33,7 @@ class WorkIotCenterRpcServiceConsumer extends AbstractServiceClient implements W
             }
             return $this->__request(__FUNCTION__, compact('method', 'param'));
         } catch (\Exception $exception) {
+            stdLog()->warning('WorkIotCenterRpcServiceConsumer Error', ['method' => $method, 'param' => $param]);
             return ApiHelper::genServiceErrorData($this->serviceName, $exception);
         }
     }

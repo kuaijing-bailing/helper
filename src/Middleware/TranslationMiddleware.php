@@ -39,7 +39,7 @@ class TranslationMiddleware implements MiddlewareInterface
         $language = $request->getHeaderLine('language');
 
         if (empty($language)) {
-            $language = $this->request->input('language');
+            $language = (string) $this->request->input('language', '');
         }
 
         if (! empty($language)) {

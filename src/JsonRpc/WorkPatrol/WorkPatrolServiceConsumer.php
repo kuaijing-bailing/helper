@@ -33,6 +33,7 @@ class WorkPatrolServiceConsumer extends AbstractServiceClient implements WorkPat
             }
             return $this->__request(__FUNCTION__, compact('method', 'param'));
         } catch (\Exception $exception) {
+            stdLog()->warning('WorkPatrolServiceConsumer Error', ['method' => $method, 'param' => $param]);
             return ApiHelper::genServiceErrorData($this->serviceName, $exception);
         }
     }

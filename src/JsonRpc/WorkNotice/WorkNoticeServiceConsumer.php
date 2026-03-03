@@ -33,6 +33,7 @@ class WorkNoticeServiceConsumer extends AbstractServiceClient implements WorkNot
             }
             return $this->__request(__FUNCTION__, compact('method', 'param'));
         } catch (\Exception $exception) {
+            stdLog()->warning('WorkNoticeServiceConsumer Error', ['method' => $method, 'param' => $param]);
             return ApiHelper::genServiceErrorData($this->serviceName, $exception);
         }
     }

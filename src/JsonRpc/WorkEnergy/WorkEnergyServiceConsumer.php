@@ -33,6 +33,7 @@ class WorkEnergyServiceConsumer extends AbstractServiceClient implements WorkEne
             }
             return $this->__request(__FUNCTION__, compact('method', 'param'));
         } catch (\Exception $exception) {
+            stdLog()->warning('WorkEnergyServiceConsumer Error', ['method' => $method, 'param' => $param]);
             return ApiHelper::genServiceErrorData($this->serviceName, $exception);
         }
     }

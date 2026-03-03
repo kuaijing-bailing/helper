@@ -10,6 +10,7 @@ declare(strict_types=1);
  */
 namespace Bailing\Command;
 
+use Bailing\Helper\Intl\I18nHelper;
 use Hyperf\Command\Annotation\Command;
 use Hyperf\Command\Command as HyperfCommand;
 use Hyperf\Database\Schema\Schema;
@@ -32,6 +33,7 @@ class GenCRUDCommand extends HyperfCommand
         parent::configure();
         $this->addArgument('table', InputArgument::REQUIRED, '数据表名');
         $this->addOption('dir', 'd', InputOption::VALUE_OPTIONAL, '欲生成控制器所在的目录名（例：输入Org会生成在app/Controller/Org）');
+        $this->addOption('module', 'm', InputOption::VALUE_OPTIONAL, '欲生成菜单名称');
         $this->setDescription('生成CRUD代码');
     }
 
@@ -47,8 +49,10 @@ class GenCRUDCommand extends HyperfCommand
             foreach ($dirArr as &$item) {
                 $item = Str::studly($item);
             }
+            unset($item);
             $dir = implode('/', $dirArr);
         }
+        $module = (string) $this->input->getOption('module');
 
         // 引入model
         $table = $this->input->getArgument('table');
@@ -99,6 +103,7 @@ class GenCRUDCommand extends HyperfCommand
         $stub = $this->replaceClass($stub, $model);
         $stub = $this->replaceDir($stub, $dir);
         $stub = $this->replaceRoute($stub, $dir, $model);
+        $stub = $this->replaceModule($stub, $module);
         $stub = $this->replaceControllerFields($stub, $table);
         $controllerDir = $this->makeDirectory(BASE_PATH . '/app/Controller/' . $dir);
         file_put_contents($controllerDir . '/' . $model . 'Controller.php', $stub);
@@ -138,6 +143,18 @@ class GenCRUDCommand extends HyperfCommand
         return str_replace('%ROUTER%', $route, $stub);
     }
 
+    protected function replaceModule(string $stub, string $module): string
+    {
+        $stub = str_replace('%MODULE%', $module, $stub);
+        if (empty($module)) {
+            return str_replace('%MODULE_I18N%', '[]', $stub);
+        }
+
+        $moduleArr = explode(':', $module);
+        $moduleName = end($moduleArr);
+        return str_replace('%MODULE_I18N%', I18nHelper::translateArr($moduleName, true), $stub);
+    }
+
     protected function replaceTrimFields(string $stub, array $fields): string
     {
         $str = implode("', '", $fields);
@@ -157,7 +174,7 @@ class GenCRUDCommand extends HyperfCommand
             // 控制器的表单
             $addFields = '';
             foreach ($columnsDefaultArr as $item) {
-                if (! in_array($item->COLUMN_NAME, ['id', 'created_at', 'updated_at', 'deleted_at', 'org_id'])) {
+                if (! in_array($item->COLUMN_NAME, ['id', 'created_at', 'updated_at', 'deleted_at', 'org_id', 'created_uid', 'updated_uid', 'created_name', 'updated_name'])) {
                     if ($item->COLUMN_DEFAULT === null && $item->IS_NULLABLE === 'NO') {
                         $addFields .= '$model->' . $item->COLUMN_NAME . ' = ';
                     } else {
@@ -206,7 +223,7 @@ class GenCRUDCommand extends HyperfCommand
                     } elseif (in_array($columnsTypeArr[$item->COLUMN_NAME]['data_type'], ['timestamp', 'datetime', 'date'])) {
                         $requestFields .= "'" . $item->COLUMN_NAME . "' => '" . ($item->COLUMN_DEFAULT === null && $item->IS_NULLABLE === 'NO' ? 'required|' : '') . "date'," . PHP_EOL . '            ';
                     } elseif (in_array($columnsTypeArr[$item->COLUMN_NAME]['data_type'], ['json'])) {
-                        $requestFields .= "'" . $item->COLUMN_NAME . "' => " . ($item->COLUMN_DEFAULT === null && $item->IS_NULLABLE === 'NO' ? 'required|' : '') . "'array'," . PHP_EOL . '            ';
+                        $requestFields .= "'" . $item->COLUMN_NAME . "' => '" . ($item->COLUMN_DEFAULT === null && $item->IS_NULLABLE === 'NO' ? 'required|' : '') . "array'," . PHP_EOL . '            ';
                     }
                 }
             }
