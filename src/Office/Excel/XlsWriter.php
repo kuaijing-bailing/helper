@@ -138,7 +138,7 @@ class XlsWriter extends Excel implements ExcelPropertyInterface
     /**
      * 导出excel.
      */
-    public function export(string $filename, array|\Closure $closure, \Closure $callbackData = null, bool $isDemo = false, int $orgId = 0, array $infos = []): \Psr\Http\Message\ResponseInterface
+    public function export(string $filename, array|\Closure $closure, ?\Closure $callbackData = null, bool $isDemo = false, int $orgId = 0, array $infos = []): \Psr\Http\Message\ResponseInterface
     {
         $filename .= '.xlsx';
         is_array($closure) ? $data = &$closure : $data = $closure();

@@ -19,7 +19,7 @@ use Psr\Http\Message\ResponseInterface;
 
 class Collection extends \Hyperf\Collection\Collection
 {
-    public function export(string $dto, string $filename, array|\Closure $closure = null, array $extra = [], bool $isDemo = false, int $orgId = 0, array $infos = []): ResponseInterface
+    public function export(string $dto, string $filename, array|\Closure|null $closure = null, array $extra = [], bool $isDemo = false, int $orgId = 0, array $infos = []): ResponseInterface
     {
         $excelDrive = \Hyperf\Config\config('excel.drive', 'auto');
 

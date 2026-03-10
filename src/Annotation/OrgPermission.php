@@ -54,6 +54,8 @@ class OrgPermission extends AbstractAnnotation
 
     public bool $hideInternationalize = true; // 是否在多语言环境隐藏
 
+    public array $org_app = []; // 关联子系统的菜单
+
     public function __construct(
         string $module = '',
         string $action = '',
