@@ -95,9 +95,9 @@ class OrgConfigHelper
     /**
      * 写数组格式的配置值.
      */
-    public static function setConfigArr(int $orgId, string $name, array $value, string $index = ''): string
+    public static function setConfigArr(int $orgId, string $name, array $value, string $index = '', bool $setOrgServiceData = false): string
     {
-        return self::setConfig($orgId, $name, Json::encode($value ?: []), $index);
+        return self::setConfig($orgId, $name, Json::encode($value ?: []), $index, $setOrgServiceData);
     }
 
     /**
@@ -107,9 +107,18 @@ class OrgConfigHelper
      * @param string $value 配置值
      * @param string $index 唯一索引值，用于细项配置（例如 项目ID_楼宇ID，店铺ID）
      */
-    #[CachePut(prefix: 'bailingOrgConfig', value: '_#{orgId}_#{name}_#{index}', ttl: 600)]
-    public static function setConfig(int $orgId, string $name, string $value, string $index = ''): string
+    #[CachePut(prefix: 'bailingOrgConfig', value: '_#{orgId}_#{name}_#{index}_{getOrgServiceData}', ttl: 600)]
+    public static function setConfig(int $orgId, string $name, string $value, string $index = '', bool $setOrgServiceData = false): string
     {
+        if ($setOrgServiceData) {
+            $orgResult = container()->get(OrgUserServiceInterface::class)->call('setBailingOrgConfig', ['org_id' => $orgId, 'name' => $name, 'value' => $value, 'index' => $index]);
+            if (ApiHelper::checkDataOk($orgResult)) {
+                return (string) $orgResult['data']['result'];
+            } else {
+                return '';
+            }
+        }
+
         $where = [
             'org_id' => $orgId,
             'name' => $name,
