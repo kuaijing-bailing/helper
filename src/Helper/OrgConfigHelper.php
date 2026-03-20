@@ -107,7 +107,7 @@ class OrgConfigHelper
      * @param string $value 配置值
      * @param string $index 唯一索引值，用于细项配置（例如 项目ID_楼宇ID，店铺ID）
      */
-    #[CachePut(prefix: 'bailingOrgConfig', value: '_#{orgId}_#{name}_#{index}_{setOrgServiceData}', ttl: 600)]
+    #[CachePut(prefix: 'bailingOrgConfig', value: '_#{orgId}_#{name}_#{index}_#{setOrgServiceData}', ttl: 600)]
     public static function setConfig(int $orgId, string $name, string $value, string $index = '', bool $setOrgServiceData = false): string
     {
         if ($setOrgServiceData) {
