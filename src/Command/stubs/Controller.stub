@@ -45,7 +45,7 @@ class %CLASS%Controller extends AbstractController
                 ],
             ];
         }
-        $list = buildFormSearchQuery(%CLASS%::query()->where(['org_id' => $nowAdmin->org_id]), $post['filters'], $post['sorts'])->paginate((int) $this->request->input('pageSize', 20))->toArray();
+        $list = buildFormSearchQuery(%CLASS%::query()->where(['org_id' => $nowAdmin->org_id]), $post['filters'] ?? [], $post['sorts'] ?? [])->paginate((int) $this->request->input('pageSize', 20))->toArray();
         // 如果不需要处理列表，则删除掉
         if ($list['data']) {
             foreach ($list['data'] as $key => &$item) {
