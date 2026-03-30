@@ -13,6 +13,7 @@ namespace Bailing\Job;
 use Bailing\Annotation\XxlJobTask;
 use Bailing\Event\RuntimeFileClear;
 use Bailing\Helper\FileHelper;
+use Bailing\Model\BailingDataImportSubTask;
 use Hyperf\Coordinator\Constants;
 use Hyperf\Coordinator\CoordinatorManager;
 use Hyperf\Di\Annotation\Inject;
@@ -75,6 +76,10 @@ class RuntimeFileClearJob extends AbstractJobHandler
         stdLog()->info('清空缓存上传文件完成执行，删除文件总数：' . strval($clearCount));
 
         container()->get(EventDispatcherInterface::class)->dispatch(new RuntimeFileClear());
+
+		//删除导入子任务3天前的数据
+		$threeDayBefore = date('Y-m-d 00:00:00', time() - 3 * 86400);
+		BailingDataImportSubTask::query()->where('created_at', '<', $threeDayBefore)->delete();
 
         // 终止进程
         CoordinatorManager::until(Constants::WORKER_EXIT)->resume();
