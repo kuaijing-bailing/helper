@@ -40,6 +40,8 @@ abstract class Excel
 
     protected int $orgId = 0;
 
+	protected array $checkBuild = [];
+
     public function __construct(string $dto, array $extraData = [], bool $isDemo = false, int $orgId = 0, array $infos = [])
     {
         if (! (new $dto()) instanceof ModelExcelInterface) {
@@ -51,6 +53,7 @@ abstract class Excel
             $this->dictData = $dtoObject->dictData();
         }
         $this->orgId = $orgId;
+		$this->checkBuild = $infos['check_build'] ?? [];
         $this->annotationMate = AnnotationCollector::get($dto);
 
         // 处理国际化翻译 start
@@ -170,7 +173,7 @@ abstract class Excel
         // 批量替换字典
         $dictNameArr = arrayColumnUnique($this->property, 'dictName');
         if (! empty($dictNameArr)) {
-            $dictResult = container()->get(OrgUserServiceInterface::class)->call('getSystemDictData', ['org_id' => $this->orgId, 'typeArr' => $dictNameArr, 'checkedBuild' => getCheckedBuild()]);
+            $dictResult = container()->get(OrgUserServiceInterface::class)->call('getSystemDictData', ['org_id' => $this->orgId, 'typeArr' => $dictNameArr, 'checkedBuild' => ! empty($this->checkBuild)? $this->checkBuild : getCheckedBuild()]);
             if (empty($dictResult['data']['list'])) {
                 throw new \Exception('Dict is empty, please check');
             }

@@ -145,4 +145,10 @@ enum CommonCode: int implements EnumCodeInterface
 
     #[EnumCode(msg: '该用户已登出，请重新登录', i18nMsg: ['en' => 'The user has logged out, please log in again', 'zh_tw' => '該用戶已登出，請重新登錄', 'zh_hk' => '該用戶已登出，請重新登錄', 'ja' => 'ユーザーはログアウトしました。再度ログインしてください。'])]
     case USER_IS_LOGOUT = 43;
+
+	#[EnumCode(msg: '正在后台导入中，结果将以站内信方式告知，请稍后。',i18nMsg: ['en' => 'The data import has importing in the background, the result will be notified by email, please wait', 'zh_tw' => '正在后台導入中，結果將以郵件方式告知，請稍後', 'zh_hk' => '正在后台導入中，結果將以郵件方式告知，請稍後', 'ja' => 'データインポートが背景で行われ、結果はメールで通知されます。しばらくしてから再試行してください。'])]
+    case USER_IS_IMPORTING = 44;
+
+	#[EnumCode(msg: '正在后台导出中，结果将以站内信方式告知，请稍后。',i18nMsg: ['en' => 'The data export has exporting in the background, the result will be notified by email, please wait', 'zh_tw' => '正在后台導出中，結果將以郵件方式告知，請稍後', 'zh_hk' => '正在后台導出中，結果將以郵件方式告知，請稍後', 'ja' => 'データエクスポートが背景で行われ、結果はメールで通知されます。しばらくしてから再試行してください。'])]
+    case USER_IS_EXPORTING = 45;
 }

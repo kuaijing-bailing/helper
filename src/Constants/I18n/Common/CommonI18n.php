@@ -28,4 +28,7 @@ enum CommonI18n: int  implements EnumI18nInterface
     case DONT_MODIFY_TABLE_STRUCTURE = 3;
     #[EnumI18n(txt: '红色字段是必填项，黑色字段是选填项。', i18nTxt: ['en' => 'Red fields are required, black fields are optional.', 'zh_tw' => '紅色欄位是必填項，黑色欄位是選填項。', 'zh_hk' => '紅色欄位是必填項，黑色欄位是選填項。', 'ja' => '紅色欄位是必填項，黑色欄位是選填項。'])]
     case RED_FIELDS_REQUIRED = 4;
+
+	#[EnumI18n(txt: '资产导入失败结果，请下载文件查看失败详情，失败0条则没有详情', i18nTxt: ['en' => 'Asset import failed result, please download file to view details, if failed 0 rows, then no details', 'zh_tw' => '資產導入失敗結果，請下載文件查看失敗詳情，失敗0條則沒有詳情', 'ja' => 'アセットインポート失敗結果，詳細を表示してダウンロードファイル，失敗0條則沒有詳情', 'zh_hk' => '資產導入失敗結果，請下載文件查看失敗詳情，失敗0條則沒有詳情'])]
+	case IMPORT_REMARK = 5;
 }
