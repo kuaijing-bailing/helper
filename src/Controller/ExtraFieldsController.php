@@ -59,6 +59,17 @@ class ExtraFieldsController
         );
     }
 
+    #[GetMapping(path: '/common/extra/field/all')]
+    public function all(): array
+    {
+        $post = request()->all();
+        $nowAdmin = contextGet('nowUser');
+
+        $list = BailingExtraFields::query()->where(['org_id' => $nowAdmin->org_id, 'alias' => $post['alias']])->orderByDesc('sort')->orderByDesc('id')->get()->toArray();
+
+        return ApiHelper::genSuccessData(['list' => $list]);
+    }
+
     #[PostMapping(path: '/common/extra/field')]
     #[RateRequest]
     public function add(): array
