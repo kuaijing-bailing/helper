@@ -64,4 +64,6 @@ interface ThirdServiceInterface
      * 获取openid.
      */
     public function getOpenidByUserid(int $orgId, int $userId): array;
+
+	public function getFeishuInfoByOrgId(int $orgId): array;
 }

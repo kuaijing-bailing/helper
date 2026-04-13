@@ -183,7 +183,7 @@ class XlsWriter extends Excel implements ExcelPropertyInterface
     /**
      * 导出excel.
      */
-    public function export(string $filename, array|\Closure $closure, \Closure $callbackData = null, bool $isDemo = false, int $orgId = 0, array $infos = []): \Psr\Http\Message\ResponseInterface|string
+    public function export(string $filename, array|\Closure $closure, ?\Closure $callbackData = null, bool $isDemo = false, int $orgId = 0, array $infos = []): \Psr\Http\Message\ResponseInterface|string
     {
         $filename .= '.xlsx';
         is_array($closure) ? $data = &$closure : $data = $closure();
@@ -218,8 +218,9 @@ class XlsWriter extends Excel implements ExcelPropertyInterface
         $rowFormat = new Format($fileObject->getHandle());
 
         for ($i = 0; $i < count($columnField); ++$i) {
+            $columnIndex = $this->getColumnIndex($i);
             $fileObject->setColumn(
-                sprintf('%s1:%s1', $this->getColumnIndex($i), $this->getColumnIndex($i)),
+                sprintf('%s1:%s1', $columnIndex, $columnIndex),
                 $this->property[$i]['width'] ?? mb_strlen($columnName[$i]) * 5,
                 $columnFormat->align($this->property[$i]['align'] ? $aligns[$this->property[$i]['align']] : $aligns['left'])
                     ->background($this->property[$i]['bgColor'] ?? Format::COLOR_WHITE)
@@ -258,7 +259,7 @@ class XlsWriter extends Excel implements ExcelPropertyInterface
         $fileObject->setRow(
             sprintf('A2:A%s', $dataLength + 2),
             $this->property[0]['height'] ?? 24,
-            (new Format($fileObject->getHandle()))->align(Format::FORMAT_ALIGN_VERTICAL_CENTER)->toResource()
+            (new Format($fileObject->getHandle()))->align(Format::FORMAT_ALIGN_VERTICAL_CENTER)->number('@')->toResource()
         );
 
         if (empty($infos['is_export'])) {
@@ -362,7 +363,7 @@ class XlsWriter extends Excel implements ExcelPropertyInterface
         $filePath = $filePath->output();
 
         // 根据out_type判断是否返回文件url
-        if ($infos['out_type'] == 'file') {
+        if (isset($infos['out_type']) && $infos['out_type'] == 'file') {
             try {
                 $UploadHelper = new UploadHelper();
                 $uploadResult = $UploadHelper->uploadLocalFile($filePath, 'tmp', true);

@@ -140,4 +140,13 @@ class ThirdServiceConsumer extends AbstractServiceClient implements ThirdService
             return ApiHelper::genServiceErrorData($this->serviceName, $exception);
         }
     }
+
+    public function getFeishuInfoByOrgId(int $orgId): array
+    {
+        try {
+            return $this->__request(__FUNCTION__, compact('orgId'));
+        } catch (\Exception $exception) {
+            return ApiHelper::genServiceErrorData($this->serviceName, $exception);
+        }
+    }
 }

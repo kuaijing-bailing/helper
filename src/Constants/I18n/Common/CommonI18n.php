@@ -31,7 +31,4 @@ enum CommonI18n: int implements EnumI18nInterface
 
     #[EnumI18n(txt: '红色字段是必填项，黑色字段是选填项。', i18nTxt: ['en' => 'Red fields are required, black fields are optional.', 'zh_tw' => '紅色欄位是必填項，黑色欄位是選填項。', 'zh_hk' => '紅色欄位是必填項，黑色欄位是選填項。', 'ja' => '紅色欄位是必填項，黑色欄位是選填項。'])]
     case RED_FIELDS_REQUIRED = 4;
-
-    #[EnumI18n(txt: '导入失败结果，请下载文件查看失败详情，失败0条则没有详情', i18nTxt: ['en' => 'Import failed result', 'zh_tw' => '導入失敗結果', 'ja' => 'インポート失敗結果', 'zh_hk' => '導入失敗結果]'])]
-    case IMPORT_REMARK = 5;
 }
