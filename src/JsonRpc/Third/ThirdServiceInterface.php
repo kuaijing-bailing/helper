@@ -67,7 +67,9 @@ interface ThirdServiceInterface
     public function getOpenidByUserid(int $orgId, int $userId): array;
 
     /**
-     * 根据appid获取accesstoken.
+     * 根据appid获取accessToken.
      */
     public function getWechatAccessToken(string $appid): array;
+
+	public function getFeishuInfoByOrgId(int $orgId): array;
 }

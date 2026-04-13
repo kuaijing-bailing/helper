@@ -143,12 +143,21 @@ class ThirdServiceConsumer extends AbstractServiceClient implements ThirdService
     }
 
     /**
-     * 根据appid获取accesstoken.
+     * 根据appid获取accessToken.
      */
     public function getWechatAccessToken(string $appid): array
     {
         try {
             return $this->__request(__FUNCTION__, compact('appid'));
+        } catch (\Exception $exception) {
+            return ApiHelper::genServiceErrorData($this->serviceName, $exception);
+        }
+    }
+
+    public function getFeishuInfoByOrgId(int $orgId): array
+    {
+        try {
+            return $this->__request(__FUNCTION__, compact('orgId'));
         } catch (\Exception $exception) {
             return ApiHelper::genServiceErrorData($this->serviceName, $exception);
         }

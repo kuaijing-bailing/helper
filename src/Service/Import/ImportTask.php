@@ -10,7 +10,6 @@ declare(strict_types=1);
  */
 namespace Bailing\Service\Import;
 
-use Bailing\Constants\I18n\Common\CommonI18n;
 use Bailing\Constants\I18n\Import\ImportI18n;
 use Bailing\Helper\Intl\DateTimeHelper;
 use Bailing\Helper\Intl\I18nHelper;
@@ -140,8 +139,8 @@ class ImportTask
                         'catLabel' => 'system',
                         'title' => ImportI18n::IMPORT_RESULT_NOTIFICATION->genI18nTxt(),
                         'content' => $contentArr,
-                        'remark' => CommonI18n::IMPORT_REMARK->genI18nTxt(returnNowLang: true, language: $userLang),
-                        'link' => $fileResult . '?type=bigData',
+                        'remark' => '',
+                        'link' => ! empty($fileResult) ? ($fileResult . '?type=bigData') : '',
                         'extra' => [],
                     ]
                 );
