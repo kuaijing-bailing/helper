@@ -71,6 +71,11 @@ class Application
 
         $apiaddr = '/v3/sign-flow/create-by-file';
         $requestType = HttpEmun::POST;
+
+        // 专属云ID
+        if (!empty($config['dedicatedCloudId'])) {
+            $signData['signFlowConfig']['signConfig']['dedicatedCloudId'] = $config['dedicatedCloudId'];
+        }
         $paramStr = json_encode($signData);
         self::ESignDebugV3($paramStr);
 
@@ -109,6 +114,11 @@ class Application
 
         $apiaddr = '/v3/sign-flow/create-by-file';
         $requestType = HttpEmun::POST;
+
+        // 专属云ID
+        if (!empty($config['dedicatedCloudId'])) {
+            $signData['signFlowConfig']['signConfig']['dedicatedCloudId'] = $config['dedicatedCloudId'];
+        }
 
         $paramStr = json_encode($signData);
         self::ESignDebugV3('基于文件发起签署接口调用成功，请求参数：');
@@ -333,6 +343,10 @@ class Application
             'fileName' => $filename,
             'fileSize' => $filesize,
         ];
+        // 专有云ID
+        if (!empty($config['dedicatedCloudId'])) {
+            $data['dedicatedCloudId'] = $config['dedicatedCloudId'];
+        }
         $paramStr = json_encode($data);
         //生成签名验签+json体的header
 
