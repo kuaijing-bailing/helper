@@ -99,6 +99,7 @@ class Application
             }
         } else {
             self::ESignDebugV3('基于文件发起签署接口调用失败，HTTP错误码' . $response->getStatus());
+            throw new \Exception('E签宝基于文件发起签署接口调用失败，HTTP错误码：' . $response->getStatus());
         }
         self::ESignDebugV3('**********基于文件发起签署调用结束**********');
 
@@ -143,6 +144,7 @@ class Application
             }
         } else {
             self::ESignDebugV3('基于文件发起签署接口调用失败，HTTP错误码' . $response->getStatus());
+            throw new \Exception('E签宝基于文件发起签署接口调用失败，HTTP错误码：' . $response->getStatus());
         }
         self::ESignDebugV3('**********基于文件发起签署调用结束**********');
 
@@ -339,7 +341,7 @@ class Application
 
         $data = [
             'contentMd5' => EsignUtilHelper::getContentBase64Md5($filePath),
-            'contentType' => 'application/pdf',
+            'contentType' => 'application/octet-stream',
             'convertToPDF' => $convert2Pdf,
             'fileName' => $filename,
             'fileSize' => $filesize,
@@ -357,8 +359,8 @@ class Application
         self::ESignDebugV3(['header' => $signAndBuildSignAndJsonHeader, 'paramStr' => $paramStr]);
 
         $uploadResponse = EsignHttpHelper::doCommHttp($config['eSignHost'], $apiaddr, $requestType, $signAndBuildSignAndJsonHeader, $paramStr);
-        self::ESignDebugV3($uploadResponse->getStatus());
         self::ESignDebugV3('=========获取文件上传结果=========');
+        self::ESignDebugV3($uploadResponse->getStatus());
         self::ESignDebugV3($uploadResponse->getBody());
         if (empty($uploadResponse->getBody())) {
             throw new \Exception(sprintf('E签宝获取文件上传地址失败：(接口返回状态码：%s)', $uploadResponse->getStatus()));
@@ -370,6 +372,7 @@ class Application
 
         //文件流put上传
         $response = EsignHttpHelper::upLoadFileHttp($fileUploadUrl, $filePath, 'application/pdf');
+        self::ESignDebugV3('=========上传文件结果=========');
         self::ESignDebugV3($response->getStatus());
         self::ESignDebugV3($response->getBody());
         if ($response->getStatus() != 200) {
