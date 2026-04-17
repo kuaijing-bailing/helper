@@ -32,6 +32,7 @@ class Application
         'eSignAppId' => '',
         'eSignAppSecret' => '',
         'eSignHost' => '',
+        'dedicatedCloudId' => '',
     ];
 
     public function __construct(array $init, bool $debug = false)
@@ -98,6 +99,7 @@ class Application
             }
         } else {
             self::ESignDebugV3('基于文件发起签署接口调用失败，HTTP错误码' . $response->getStatus());
+            throw new \Exception('E签宝基于文件发起签署接口调用失败，HTTP错误码：' . $response->getStatus());
         }
         self::ESignDebugV3('**********基于文件发起签署调用结束**********');
 
@@ -142,6 +144,7 @@ class Application
             }
         } else {
             self::ESignDebugV3('基于文件发起签署接口调用失败，HTTP错误码' . $response->getStatus());
+            throw new \Exception('E签宝基于文件发起签署接口调用失败，HTTP错误码：' . $response->getStatus());
         }
         self::ESignDebugV3('**********基于文件发起签署调用结束**********');
 
@@ -338,7 +341,7 @@ class Application
 
         $data = [
             'contentMd5' => EsignUtilHelper::getContentBase64Md5($filePath),
-            'contentType' => 'application/pdf',
+            'contentType' => 'application/octet-stream',
             'convertToPDF' => $convert2Pdf,
             'fileName' => $filename,
             'fileSize' => $filesize,
@@ -353,19 +356,28 @@ class Application
         $signAndBuildSignAndJsonHeader = EsignHttpHelper::signAndBuildSignAndJsonHeader($config['eSignAppId'], $config['eSignAppSecret'], $paramStr, $requestType, $apiaddr);
         //获取文件上传地址
         self::ESignDebugV3('=========获取文件上传地址=========');
-        self::ESignDebugV3($signAndBuildSignAndJsonHeader);
+        self::ESignDebugV3(['header' => $signAndBuildSignAndJsonHeader, 'paramStr' => $paramStr]);
 
-        $response = EsignHttpHelper::doCommHttp($config['eSignHost'], $apiaddr, $requestType, $signAndBuildSignAndJsonHeader, $paramStr);
-        self::ESignDebugV3($response->getStatus());
+        $uploadResponse = EsignHttpHelper::doCommHttp($config['eSignHost'], $apiaddr, $requestType, $signAndBuildSignAndJsonHeader, $paramStr);
         self::ESignDebugV3('=========获取文件上传结果=========');
-        self::ESignDebugV3($response->getBody());
+        self::ESignDebugV3($uploadResponse->getStatus());
+        self::ESignDebugV3($uploadResponse->getBody());
+        if (empty($uploadResponse->getBody())) {
+            throw new \Exception(sprintf('E签宝获取文件上传地址失败：(接口返回状态码：%s)', $uploadResponse->getStatus()));
+        }
+        $uploadResponseArray = json_decode($uploadResponse->getBody());
 
-        $fileUploadUrl = json_decode($response->getBody())->data->fileUploadUrl;
-        $fileId = json_decode($response->getBody())->data->fileId;
+        $fileUploadUrl = $uploadResponseArray->data->fileUploadUrl;
+        $fileId = $uploadResponseArray->data->fileId;
+
         //文件流put上传
         $response = EsignHttpHelper::upLoadFileHttp($fileUploadUrl, $filePath, 'application/pdf');
+        self::ESignDebugV3('=========上传文件结果=========');
         self::ESignDebugV3($response->getStatus());
         self::ESignDebugV3($response->getBody());
+        if ($response->getStatus() != 200) {
+            throw new \Exception(sprintf('E签宝文件读取失败：(接口返回状态码：%s)', $response->getStatus()));
+        }
         $responseArray = json_decode($response->getBody());
 
         return ['uploadRes' => self::object_array($responseArray), 'fileId' => $fileId, 'fileUploadUrl' => $fileUploadUrl];
@@ -576,7 +588,12 @@ class Application
     private function initConfig(array $config)
     {
         if (! empty($config['eSignAppId']) && ! empty($config['eSignAppSecret']) && ! empty($config['eSignHost'])) {
-            self::$config = ['eSignAppId' => $config['eSignAppId'], 'eSignAppSecret' => $config['eSignAppSecret'], 'eSignHost' => $config['eSignHost']];
+            self::$config = [
+                'eSignAppId' => $config['eSignAppId'],
+                'eSignAppSecret' => $config['eSignAppSecret'],
+                'eSignHost' => $config['eSignHost'],
+                'dedicatedCloudId' => $config['dedicatedCloudId'],
+            ];
         }
         ! empty($config['mobile']) && $this->mobile = $config['mobile'];
         ! empty($config['organName']) && $this->organName = $config['organName'];
