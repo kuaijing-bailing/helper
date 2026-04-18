@@ -36,14 +36,14 @@ class EsignHttpHelper
      * 文件上传.
      * @param $uploadUrls
      * @param $filePath
-     * @param $ContenType
+     * @param $ContentType
      * @return EsignResponse
      */
-    public static function upLoadFileHttp($uploadUrls, $filePath, $ContenType)
+    public static function upLoadFileHttp($uploadUrls, $filePath, $ContentType)
     {
         $fileContent = file_get_contents($filePath);
         $contentBase64Md5 = EsignUtilHelper::getContentBase64Md5($filePath);
-        return EsignHttpCfgHelper::upLoadFileHttp($uploadUrls, $contentBase64Md5, $fileContent, $ContenType);
+        return EsignHttpCfgHelper::upLoadFileHttp($uploadUrls, $contentBase64Md5, $fileContent, $ContentType);
     }
 
     /**
