@@ -16,7 +16,9 @@ use Bailing\Helper\RequestHelper;
 use Hyperf\Amqp\Producer;
 use Hyperf\HttpServer\Contract\RequestInterface;
 use Hyperf\HttpServer\Contract\ResponseInterface as HttpResponse;
+use Psr\Container\ContainerExceptionInterface;
 use Psr\Container\ContainerInterface;
+use Psr\Container\NotFoundExceptionInterface;
 use Psr\Http\Message\ResponseInterface;
 use Psr\Http\Message\ServerRequestInterface;
 use Psr\Http\Server\MiddlewareInterface;
@@ -47,10 +49,6 @@ class OperationLogMiddleware implements MiddlewareInterface
         $this->request = $request;
     }
 
-    /**
-     * @throws \Psr\Container\ContainerExceptionInterface
-     * @throws \Psr\Container\NotFoundExceptionInterface
-     */
     public function process(ServerRequestInterface $request, RequestHandlerInterface $handler): ResponseInterface
     {
         $result = $handler->handle($request);
@@ -116,11 +114,17 @@ class OperationLogMiddleware implements MiddlewareInterface
             return $result;
         }
 
-        // 将日志存储到amqp中
-        $message = new OperationLogProducer($operationLog);
-        $producer = container()->get(Producer::class);
-        $proResult = $producer->produce($message);
-        stdLog()->debug('OperationLogProducer amqp', [$proResult]);
+        // 将日志通过协程的方式存储到AMQP中
+        \Hyperf\Coroutine\co(function () use ($operationLog) {
+            try {
+                $message = new OperationLogProducer($operationLog);
+                $producer = container()->get(Producer::class);
+                $proResult = $producer->produce($message);
+                stdLog()->debug('OperationLogProducer produce result', [$proResult]);
+            } catch (NotFoundExceptionInterface|ContainerExceptionInterface|\Exception $e) {
+                stdLog()->warning('OperationLogProducer produce error', [$e->getMessage()]);
+            }
+        });
 
         return $result;
     }
