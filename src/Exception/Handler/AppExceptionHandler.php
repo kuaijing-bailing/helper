@@ -64,6 +64,10 @@ class AppExceptionHandler extends ExceptionHandler
                 ]],
                 [[
                     'tag' => 'text',
+                    'text' => sprintf('用户IP：%s', RequestHelper::getClientIp()),
+                ]],
+                [[
+                    'tag' => 'text',
                     'text' => sprintf('用户信息：%s', http_build_query($nowUser)),
                 ]],
                 [[
@@ -72,7 +76,7 @@ class AppExceptionHandler extends ExceptionHandler
                 ]],
                 [[
                     'tag' => 'text',
-                    'text' => sprintf('用户IP：%s', RequestHelper::getClientIp()),
+                    'text' => sprintf('请求头：%s', $request->getHeaders() ? Json::encode($request->getHeaders()) : '无'),
                 ]],
                 [[
                     'tag' => 'text',

@@ -11,6 +11,7 @@ declare(strict_types=1);
 namespace Bailing\Aspect;
 
 use Bailing\Annotation\RateWait;
+use Bailing\Helper\AesHelper;
 use Hyperf\Codec\Json;
 use Hyperf\Di\Aop\AbstractAspect;
 use Hyperf\Di\Aop\ProceedingJoinPoint;
@@ -53,7 +54,7 @@ class RateWaitAspect extends AbstractAspect
                 if (! is_array($arguments[$item])) {
                     $cacheName.= ':' . $arguments[$item];
                 } else {
-                    $cacheName.= ':' . md5(Json::encode($arguments[$item]));
+                    $cacheName.= ':' . AesHelper::digest(Json::encode($arguments[$item]));
                 }
             } else {
                 $cacheName.= ':' . $item;
