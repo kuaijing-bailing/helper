@@ -97,21 +97,24 @@ class OperationLogMiddleware implements MiddlewareInterface
             return $result;
         }
 
-        // GET请求的不存
-        if ($operationLog['method'] == 'GET') {
-            return $result;
-        }
+        // 系统后台配置强行开启除外
+        if (! cfg('operation_log_report_all')) {
+            // GET请求的不存
+            if ($operationLog['method'] == 'GET') {
+                return $result;
+            }
 
-        // 新的固定列表查询页，不存
-        if ($operationLog['method'] == 'POST' && str_ends_with($operationLog['router'], '/query')) {
-            return $result;
-        }
+            // 新的固定列表查询页不存
+            if ($operationLog['method'] == 'POST' && str_ends_with($operationLog['router'], '/query')) {
+                return $result;
+            }
 
-        // 如果是不请求的URL，不存
-        $filterStr = $operationLog['method'] . ':' . $operationLog['router'];
-        $config = config('log_report');
-        if (! empty($config) && in_array($filterStr, $config)) {
-            return $result;
+            // 如果是不请求的URL不存
+            $filterStr = $operationLog['method'] . ':' . $operationLog['router'];
+            $config = config('log_report');
+            if (! empty($config) && in_array($filterStr, $config)) {
+                return $result;
+            }
         }
 
         // 将日志通过协程的方式存储到AMQP中
