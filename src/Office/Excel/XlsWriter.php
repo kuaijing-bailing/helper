@@ -12,6 +12,7 @@ namespace Bailing\Office\Excel;
 
 use Bailing\Constants\Code\Common\CommonCode;
 use Bailing\Constants\I18n\Common\CommonI18n;
+use Bailing\Constants\I18n\Import\ImportI18n;
 use Bailing\Exception\BusinessException;
 use Bailing\Helper\ApiHelper;
 use Bailing\Helper\StrHelper;
@@ -88,9 +89,14 @@ class XlsWriter extends Excel implements ExcelPropertyInterface
 
                     // 判断日期时间字段
                     if (empty($errorMsg) && $tmpProperty['dateTime'] && $value != '') {
-                        $realDateTime = $xlsWriterHelper->formatDate($value, $tmpProperty['dateTime']);
-                        if (empty($realDateTime)) {
-                            $errorMsg = CommonCode::PARAMS_WRONG_WITH_FIELD->genI18nMsg(['field' => $tmpProperty['value']], true, $this->nowLang);
+                        try {
+                            $realDateTime = $xlsWriterHelper->formatDate($value, $tmpProperty['dateTime']);
+                            if (empty($realDateTime)) {
+                                $errorMsg = CommonCode::PARAMS_WRONG_WITH_FIELD->genI18nMsg(['field' => $tmpProperty['value']], true, $this->nowLang);
+                            }
+                        } catch (\Exception $e) {
+                            $realDateTime = $value;
+                            $errorMsg = ImportI18n::IMPORT_DATE_FORMAT_ERROR->genI18nTxt(['field' => $tmpProperty['value']], true, $this->nowLang);
                         }
                         $tmp[$tmpProperty['name']] = $realDateTime;
                     }
