@@ -35,7 +35,7 @@ enum ImportI18n: int implements EnumI18nInterface
     #[EnumI18n(txt: '导入成功数量', i18nTxt: ['en' => 'Import success count', 'zh_tw' => '導入成功數量', 'ja' => 'インポート成功数', 'zh_hk' => '導入成功數量'])]
     case IMPORT_SUCCESS_COUNT = 6;
 
-    #[EnumI18n(txt: '字段（field）日期时间格式错误', i18nTxt: ['en' => 'Field (field) date time format error', 'zh_tw' => '欄位（field）日期時間格式錯誤', 'ja' => 'フィールド（field）日付時刻形式エラー', 'zh_hk' => '欄位（field）日期時間格式錯誤'])]
+    #[EnumI18n(txt: '字段（{field}）日期时间格式错误', i18nTxt: ['en' => 'Field ({field}) date time format error', 'zh_tw' => '欄位（{field}）日期時間格式錯誤', 'ja' => 'フィールド（{field}）日付時刻形式エラー', 'zh_hk' => '欄位（{field}）日期時間格式錯誤'])]
     case IMPORT_DATE_FORMAT_ERROR = 7;
 
     #[EnumI18n(txt: '日期时间格式错误', i18nTxt: ['en' => 'Date time format error', 'zh_tw' => '日期時間格式錯誤', 'ja' => '日付時刻形式エラー', 'zh_hk' => '日期時間格式錯誤'])]
