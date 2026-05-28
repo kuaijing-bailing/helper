@@ -11,6 +11,7 @@ declare(strict_types=1);
 namespace Bailing\Middleware;
 
 use Bailing\Helper\ApiHelper;
+use Bailing\Helper\AesHelper;
 use Bailing\Helper\RequestHelper;
 use Hyperf\Codec\Json;
 use Hyperf\Context\Context;
@@ -58,7 +59,7 @@ class RateRequestMiddleware implements MiddlewareInterface
 
         $redis = redis();
 
-        $strKey = 'rate_request:' . md5(serialize($handleArr));
+        $strKey = 'rate_request:' . AesHelper::digest(serialize($handleArr));
 
         $result = $redis->set($strKey, Json::encode($handleArr), ['NX', 'EX' => 6]);
 

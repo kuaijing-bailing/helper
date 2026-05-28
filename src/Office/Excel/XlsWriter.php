@@ -12,12 +12,16 @@ namespace Bailing\Office\Excel;
 
 use Bailing\Constants\Code\Common\CommonCode;
 use Bailing\Constants\I18n\Common\CommonI18n;
+use Bailing\Constants\I18n\Import\ImportI18n;
 use Bailing\Exception\BusinessException;
+use Bailing\Helper\ApiHelper;
 use Bailing\Helper\StrHelper;
+use Bailing\Helper\UploadHelper;
 use Bailing\Helper\XlsWriterHelper;
+use Bailing\Model\BailingDataImportMainTask;
 use Bailing\Office\Excel;
 use Bailing\Office\Interfaces\ExcelPropertyInterface;
-use Carbon\Carbon;
+use Hyperf\Amqp\Producer;
 use Hyperf\DbConnection\Model\Model;
 use Hyperf\HttpServer\Contract\RequestInterface;
 use Hyperf\HttpServer\Contract\ResponseInterface;
@@ -39,7 +43,7 @@ class XlsWriter extends Excel implements ExcelPropertyInterface
     /**
      * 导入数据.
      */
-    public function import(Model $model, ?\Closure $closure = null, int $orgId = 0): bool
+    public function import(Model $model, ?\Closure $closure = null, int $orgId = 0, array $infos = []): bool
     {
         $request = container()->get(RequestInterface::class);
         if ($request->hasFile('file')) {
@@ -85,9 +89,14 @@ class XlsWriter extends Excel implements ExcelPropertyInterface
 
                     // 判断日期时间字段
                     if (empty($errorMsg) && $tmpProperty['dateTime'] && $value != '') {
-                        $realDateTime = $xlsWriterHelper->formatDate($value, $tmpProperty['dateTime']);
-                        if (empty($realDateTime)) {
-                            $errorMsg = CommonCode::PARAMS_WRONG_WITH_FIELD->genI18nMsg(['field' => $tmpProperty['value']], true, $this->nowLang);
+                        try {
+                            $realDateTime = $xlsWriterHelper->formatDate($value, $tmpProperty['dateTime']);
+                            if (empty($realDateTime)) {
+                                $errorMsg = CommonCode::PARAMS_WRONG_WITH_FIELD->genI18nMsg(['field' => $tmpProperty['value']], true, $this->nowLang);
+                            }
+                        } catch (\Exception $e) {
+                            $realDateTime = $value;
+                            $errorMsg = ImportI18n::IMPORT_DATE_FORMAT_ERROR->genI18nTxt(['field' => $tmpProperty['value']], true, $this->nowLang);
                         }
                         $tmp[$tmpProperty['name']] = $realDateTime;
                     }
@@ -117,6 +126,48 @@ class XlsWriter extends Excel implements ExcelPropertyInterface
                 $importData[] = $tmp;
             }
 
+            // 拿到数据后，放入队列中进行批量导入
+            if (! empty($infos['import_type'])) {
+                $fileName = $file->getClientFilename();
+                $mainTaskModel = new BailingDataImportMainTask();
+                $mainTaskModel->org_id = $this->orgId;
+                $mainTaskModel->task_id = buildOrderId($infos['operate_uid']);
+                $mainTaskModel->file_name = $fileName;
+                $mainTaskModel->data_total = count($importData);
+                $mainTaskModel->created_uid = $infos['operate_uid'];
+                $mainTaskModel->created_name = $infos['operate_name'];
+                try {
+                    $mainTaskModel->save();
+                } catch (\Exception $e) {
+                    throw new \Exception($e->getMessage());
+                }
+
+                $subData = array_chunk($importData, 10);
+
+                $infos['org_id'] = $this->orgId;
+                $infos['main_task_id'] = $mainTaskModel->id;
+                foreach ($subData as $subItem) {
+                    $taskId = buildOrderId();
+                    $infos['task_id'] = $taskId;
+                    $infos['import_data'] = $subItem;
+                    // 发送到队列
+                    $message = new $infos['producer']([
+                        'consumer' => $infos['consumer'],
+                        'params' => [
+                            'import_type' => $infos['import_type'],
+                            'import_params' => $infos,
+                        ],
+                    ]);
+                    try {
+                        container()->get(Producer::class)->produce($message);
+                    } catch (\Exception $e) {
+                        throw new \Exception($e->getMessage());
+                    }
+                }
+
+                return true;
+            }
+
             if ($closure instanceof \Closure) {
                 return $closure($model, $importData);
             }
@@ -138,7 +189,7 @@ class XlsWriter extends Excel implements ExcelPropertyInterface
     /**
      * 导出excel.
      */
-    public function export(string $filename, array|\Closure $closure, \Closure $callbackData = null, bool $isDemo = false, int $orgId = 0, array $infos = []): \Psr\Http\Message\ResponseInterface
+    public function export(string $filename, array|\Closure $closure, ?\Closure $callbackData = null, bool $isDemo = false, int $orgId = 0, array $infos = []): \Psr\Http\Message\ResponseInterface|string
     {
         $filename .= '.xlsx';
         is_array($closure) ? $data = &$closure : $data = $closure();
@@ -173,8 +224,9 @@ class XlsWriter extends Excel implements ExcelPropertyInterface
         $rowFormat = new Format($fileObject->getHandle());
 
         for ($i = 0; $i < count($columnField); ++$i) {
+            $columnIndex = $this->getColumnIndex($i);
             $fileObject->setColumn(
-                sprintf('%s1:%s1', $this->getColumnIndex($i), $this->getColumnIndex($i)),
+                sprintf('%s1:%s1', $columnIndex, $columnIndex),
                 $this->property[$i]['width'] ?? mb_strlen($columnName[$i]) * 5,
                 $columnFormat->align($this->property[$i]['align'] ? $aligns[$this->property[$i]['align']] : $aligns['left'])
                     ->background($this->property[$i]['bgColor'] ?? Format::COLOR_WHITE)
@@ -213,7 +265,7 @@ class XlsWriter extends Excel implements ExcelPropertyInterface
         $fileObject->setRow(
             sprintf('A2:A%s', $dataLength + 2),
             $this->property[0]['height'] ?? 24,
-            (new Format($fileObject->getHandle()))->align(Format::FORMAT_ALIGN_VERTICAL_CENTER)->toResource()
+            (new Format($fileObject->getHandle()))->align(Format::FORMAT_ALIGN_VERTICAL_CENTER)->number('@')->toResource()
         );
 
         if (empty($infos['is_export'])) {
@@ -315,6 +367,21 @@ class XlsWriter extends Excel implements ExcelPropertyInterface
         }
 
         $filePath = $filePath->output();
+
+        // 根据out_type判断是否返回文件url
+        if (isset($infos['out_type']) && $infos['out_type'] == 'file') {
+            try {
+                $UploadHelper = new UploadHelper();
+                $uploadResult = $UploadHelper->uploadLocalFile($filePath, 'tmp', true);
+                if (ApiHelper::checkDataOk($uploadResult)) {
+                    return $uploadResult['data']['fileUrl'];
+                }
+
+                return $filePath;
+            } catch (\Exception $e) {
+                throw new \Exception($e->getMessage());
+            }
+        }
 
         $response->download($filePath, $filename);
 

@@ -10,6 +10,7 @@ declare(strict_types=1);
  */
 namespace Bailing\Listener;
 
+use Bailing\Helper\AesHelper;
 use Bailing\Helper\TranslationHelper;
 use Hyperf\Codec\Json;
 use Hyperf\Context\Context;
@@ -46,7 +47,7 @@ class TranslationSavedListener implements ListenerInterface
                     foreach ($tableI18nConfig['i18n'] as $item) {
                         if (! empty($model->{$item})) {
                             // 优先判断redis中有没有，可以事先埋入(表名、缓存标识辅助字段、值的md5)
-                            $redisKey = sprintf('i18n:%s%s:%s', $table, ! empty($tableI18nConfig['saveUniqueField']) ? ':' . $model->{$tableI18nConfig['saveUniqueField']} : '', md5($model->{$item}));
+                            $redisKey = sprintf('i18n:%s%s:%s', $table, ! empty($tableI18nConfig['saveUniqueField']) ? ':' . $model->{$tableI18nConfig['saveUniqueField']} : '', AesHelper::digest($model->{$item}));
                             $cacheI18nValue = $redis->get($redisKey);
                             if (! empty($cacheI18nValue)) {
                                 $i18nValue = Json::decode($cacheI18nValue);

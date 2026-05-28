@@ -13,6 +13,7 @@ namespace Bailing\Aspect;
 use Bailing\Annotation\RateRequest;
 use Bailing\Constants\Code\Common\CommonCode;
 use Bailing\Helper\ApiHelper;
+use Bailing\Helper\AesHelper;
 use Hyperf\Codec\Json;
 use Hyperf\Di\Aop\AbstractAspect;
 use Hyperf\Di\Aop\ProceedingJoinPoint;
@@ -67,7 +68,7 @@ class RateRequestAspect extends AbstractAspect
         $handleArr['method'] = $proceedingJoinPoint->methodName;
 
         $redis = redis();
-        $strKey = 'rate_request:' . md5(serialize($handleArr));
+        $strKey = 'rate_request:' . AesHelper::digest(serialize($handleArr));
         $result = $redis->set($strKey, Json::encode($handleArr), ['NX', 'EX' => $waitTimeout]);
         if (empty($result)) {
             stdLog()->warning('RateRequestAspect', $handleArr);

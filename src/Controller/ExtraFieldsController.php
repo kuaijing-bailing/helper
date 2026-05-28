@@ -13,6 +13,7 @@ namespace Bailing\Controller;
 use Bailing\Annotation\RateRequest;
 use Bailing\Constants\Code\Common\CommonCode;
 use Bailing\Helper\ApiHelper;
+use Bailing\Helper\AesHelper;
 use Bailing\Middleware\OrgMiddleware;
 use Bailing\Model\BailingExtraFields;
 use Hyperf\Database\Model\Builder;
@@ -57,6 +58,17 @@ class ExtraFieldsController
                 ]
             )
         );
+    }
+
+    #[GetMapping(path: '/common/extra/field/all')]
+    public function all(): array
+    {
+        $post = request()->all();
+        $nowAdmin = contextGet('nowUser');
+
+        $list = BailingExtraFields::query()->where(['org_id' => $nowAdmin->org_id, 'alias' => $post['alias']])->orderByDesc('sort')->orderByDesc('id')->get()->toArray();
+
+        return ApiHelper::genSuccessData(['list' => $list]);
     }
 
     #[PostMapping(path: '/common/extra/field')]
@@ -135,7 +147,7 @@ class ExtraFieldsController
         } else {
             $model = new BailingExtraFields();
             $model->org_id = $nowAdmin->org_id;
-            $model->key = md5(explode(' ', microtime())[0] . mt_rand(1, 1000000));
+            $model->key = AesHelper::digest(explode(' ', microtime())[0] . mt_rand(1, 1000000));
             $model->created_uid = (int) $nowAdmin->id;
             $model->created_name = (string) $nowAdmin->name;
         }

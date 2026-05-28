@@ -66,6 +66,7 @@
         "league/flysystem-ftp": "^3.0",
         "lizhichao/one-sm": "^1.10",
         "overtrue/flysystem-cos": "^5.0",
+        "symfony/console": "^7.4",
         "tencentcloud/captcha": "^3.0",
         "viest/php-ext-xlswriter-ide-helper": "^1.3.6"
     },

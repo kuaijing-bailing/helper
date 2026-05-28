@@ -8,7 +8,6 @@ declare(strict_types=1);
  * @document https://help.kuaijingai.com
  * @contact  www.kuaijingai.com 7*12 9:00-21:00
  */
-
 namespace Bailing\Office;
 
 use Bailing\Office\Excel\PhpOffice;
@@ -19,7 +18,7 @@ use Psr\Http\Message\ResponseInterface;
 
 class Collection extends \Hyperf\Collection\Collection
 {
-    public function export(string $dto, string $filename, array|\Closure $closure = null, array $extra = [], bool $isDemo = false, int $orgId = 0, array $infos = []): ResponseInterface
+    public function export(string $dto, string $filename, array|\Closure|null $closure = null, array $extra = [], bool $isDemo = false, int $orgId = 0, array $infos = []): ResponseInterface|string
     {
         $excelDrive = \Hyperf\Config\config('excel.drive', 'auto');
 
@@ -34,7 +33,11 @@ class Collection extends \Hyperf\Collection\Collection
         switch ($driver) {
             case 'xlswriter':
                 $excel = new XlsWriter($dto, $extra, $isDemo, $orgId, $infos);
-                return $excel->export($filename, $data, null, $isDemo, $orgId, $infos);
+                try {
+                    return $excel->export($filename, $data, null, $isDemo, $orgId, $infos);
+                } catch (\Exception $e) {
+                    throw new \Exception($e->getMessage());
+                }
             case 'phpoffice':
             default:
                 $excel = new PhpOffice($dto);
@@ -42,7 +45,7 @@ class Collection extends \Hyperf\Collection\Collection
         }
     }
 
-    public function import(string $dto, Model $model, ?\Closure $closure = null, array $extra = [], int $orgId = 0): bool
+    public function import(string $dto, Model $model, ?\Closure $closure = null, array $extra = [], int $orgId = 0, array $infos = []): bool
     {
         $excelDrive = \Hyperf\Config\config('excel.drive', 'auto');
         if ($excelDrive === 'auto') {
@@ -50,7 +53,11 @@ class Collection extends \Hyperf\Collection\Collection
         } else {
             $excel = $excelDrive === 'xlsWriter' ? new XlsWriter($dto, $extra, false, $orgId) : new PhpOffice($dto);
         }
-        return $excel->import($model, $closure, $orgId);
+        try {
+            return $excel->import($model, $closure, $orgId, $infos);
+        } catch (\Exception $e) {
+            throw new \Exception($e->getMessage());
+        }
     }
 
     /**

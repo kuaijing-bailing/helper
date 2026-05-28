@@ -64,19 +64,23 @@ class AppExceptionHandler extends ExceptionHandler
                 ]],
                 [[
                     'tag' => 'text',
-                    'text' => sprintf('访问路由：[%s] %s', $request->getServerParams()['request_method'], $request->getServerParams()['path_info']),
-                ]],
-                [[
-                    'tag' => 'text',
                     'text' => sprintf('用户IP：%s', RequestHelper::getClientIp()),
                 ]],
                 [[
                     'tag' => 'text',
-                    'text' => sprintf('访问参数：%s', http_build_query($request->all())),
+                    'text' => sprintf('用户信息：%s', http_build_query($nowUser)),
                 ]],
                 [[
                     'tag' => 'text',
-                    'text' => sprintf('用户信息：%s', http_build_query($nowUser)),
+                    'text' => sprintf('访问路由：[%s] %s', $request->getServerParams()['request_method'], $request->getServerParams()['path_info'] . ($request->getQueryParams() ? '?' . http_build_query($request->getQueryParams()) : '')),
+                ]],
+                [[
+                    'tag' => 'text',
+                    'text' => sprintf('请求头：%s', $request->getHeaders() ? Json::encode($request->getHeaders()) : '无'),
+                ]],
+                [[
+                    'tag' => 'text',
+                    'text' => sprintf('请求参数：%s', $request->getParsedBody() ? Json::encode($request->getParsedBody()) : '无'),
                 ]],
                 [[
                     'tag' => 'text',
