@@ -57,6 +57,7 @@ class LogController
     {
         $page = request()->input('page');
         $pageSize = request()->input('pageSize', 1000);
+        $line = request()->input('line');
 
         $path = request()->input('path', '');
         $path = str_replace('\\', '/', $path);
@@ -72,10 +73,41 @@ class LogController
             $result = FileHelper::getContent($realPath);
 
             //如果有分页
-            if ($page) {
+            if ($page && (int) $page > 0) {
                 $resultArr = explode(PHP_EOL, $result);
-                $result = array_slice($resultArr, (int) ($page - 1) * $pageSize, (int) $pageSize);
-                return ApiHelper::genSuccessData(['result' => $result, 'length' => count($result)], '获取成功');
+                $totalLines = count($resultArr);
+                $offset = (int) ($page - 1) * $pageSize;
+                $result = array_slice($resultArr, $offset, (int) $pageSize);
+                return ApiHelper::genSuccessData([
+                    'result' => $result,
+                    'length' => count($result),
+                    'totalLines' => $totalLines,
+                ], '获取成功');
+            }
+
+            // 支持 line 参数，类似 tail 命令
+            // line > 0: 从第 line 行开始读取 pageSize 行（1-indexed）
+            // line < 0: 从倒数第 |line| 行开始读取，类似 tail -200
+            if ($line !== null && (int) $line !== 0) {
+                $resultArr = explode(PHP_EOL, $result);
+                $totalLines = count($resultArr);
+
+                if ((int) $line > 0) {
+                    $startLine = (int) $line;
+                    $offset = $startLine - 1;
+                    $result = array_slice($resultArr, $offset, (int) $pageSize);
+                } else {
+                    $absLine = abs((int) $line);
+                    $startLine = max($totalLines - $absLine + 1, 1);
+                    $result = array_slice($resultArr, (int) $line);
+                }
+
+                return ApiHelper::genSuccessData([
+                    'result' => $result,
+                    'length' => count($result),
+                    'totalLines' => $totalLines,
+                    'startLine' => $startLine,
+                ], '获取成功');
             }
 
             return ApiHelper::genSuccessData(['result' => $result], '获取成功');
