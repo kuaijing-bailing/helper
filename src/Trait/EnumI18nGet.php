@@ -137,7 +137,7 @@ trait EnumI18nGet
                 'name' => $case->name,
                 'value' => $case->value,
                 'txt' => $obj->txt,
-                'i18nTxt' => $langList[$case->value] ?? ($openI18n ? $obj->i18nTxt : (object)[]),
+                'i18nTxt' => $langList[$case->value] ?? ($openI18n ? $obj->i18nTxt : []),
                 'group' => [
                     'groupCode' => $classObj->groupCode,
                 ],
