@@ -118,8 +118,10 @@ trait EnumI18nGet
         $enumCases = $enum->getCases();
         $classObj = self::getEnumClassAttitude();
 
+        $openI18n = cfg('open_internationalize') || env('open_i18n_internationalize');
+
         // 读取该分组下所有的多语言，以data_id作为键，value作为内容
-        if (! $onlyCode && (cfg('open_internationalize') || env('open_i18n_internationalize'))) {
+        if (! $onlyCode && $openI18n) {
             $langList = BailingI18nTranslation::query()->where(['type' => 0, 'group_code' => $classObj->groupCode])->pluck('value', 'data_id')->toArray();
         } else {
             $langList = [];
@@ -135,12 +137,12 @@ trait EnumI18nGet
                 'name' => $case->name,
                 'value' => $case->value,
                 'txt' => $obj->txt,
-                'i18nTxt' => $langList[$case->value] ?? $obj->i18nTxt,
+                'i18nTxt' => $langList[$case->value] ?? ($openI18n ? $obj->i18nTxt : (object)[]),
                 'group' => [
                     'groupCode' => $classObj->groupCode,
                 ],
             ];
-            $caseArr['i18nKey'] = 'i18n.' . env('APP_NAME') . '.' . $caseArr['group']['groupCode'] . '.' . $caseArr['value'];
+            $caseArr['i18nKey'] = $openI18n ? 'i18n.' . env('APP_NAME') . '.' . $caseArr['group']['groupCode'] . '.' . $caseArr['value'] : '';
 
             $caseAll[$case->name] = $caseArr;
         }

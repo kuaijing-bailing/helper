@@ -127,10 +127,10 @@ class OrgServiceConsumer extends AbstractServiceClient implements OrgServiceInte
     /**
      * 根据ID 获取机构的基本信息.
      */
-    public function getOrgByOrgIdArr(array|int $orgIdArr): array
+    public function getOrgByOrgIdArr(array|int $orgIdArr, array $fields = []): array
     {
         try {
-            return $this->__request(__FUNCTION__, compact('orgIdArr'));
+            return $this->__request(__FUNCTION__, compact('orgIdArr', 'fields'));
         } catch (\Exception $exception) {
             return ApiHelper::genServiceErrorData($this->serviceName, $exception);
         }

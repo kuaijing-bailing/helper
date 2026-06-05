@@ -58,7 +58,7 @@ interface OrgServiceInterface
     /**
      * 根据ID 获取机构的基本信息.
      */
-    public function getOrgByOrgIdArr(array|int $orgIdArr): array;
+    public function getOrgByOrgIdArr(array|int $orgIdArr, array $fields = []): array;
 
     /**
      * 根据域名前缀获取机构的基本信息.
