@@ -105,6 +105,8 @@ class XlsWriter extends Excel implements ExcelPropertyInterface
                     if (empty($errorMsg) && ! empty($tmpProperty['dictNameArr'])) {
                         if (in_array($value, $tmpProperty['dictNameArr'])) {
                             $tmp[$tmpProperty['name']] = array_search($value, $tmpProperty['dictNameArr']);
+                        } elseif (in_array($value, array_keys($tmpProperty['dictNameArr']))) {
+                            $tmp[$tmpProperty['name']] = $value;
                         } elseif ($tmpProperty['required']) {
                             $errorMsg = CommonCode::PARAMS_WRONG_WITH_FIELD->genI18nMsg(['field' => $tmpProperty['value']], true, $this->nowLang);
                         }
@@ -236,7 +238,9 @@ class XlsWriter extends Excel implements ExcelPropertyInterface
             );
             // 判断校验字段
             if (! empty($this->property[$i]['dictNameArr'])) {
-                $validationField[$i] = array_values($this->property[$i]['dictNameArr']);
+                if (count($this->property[$i]['dictNameArr']) < 10) {
+                    $validationField[$i] = array_values($this->property[$i]['dictNameArr']);
+                }
             } elseif (! empty($this->property[$i]['dictData'])) {
                 $validationField[$i] = array_values($this->property[$i]['dictData']);
             }

@@ -8,6 +8,7 @@ declare(strict_types=1);
  * @document https://help.kuaijingai.com
  * @contact  www.kuaijingai.com 7*12 9:00-21:00
  */
+
 namespace Bailing\Controller;
 
 use Bailing\Helper\ApiHelper;
@@ -32,11 +33,11 @@ class LogController
         $path = str_replace('../', '/', $path);
 
         $nowUser = contextGet('nowUser');
-        //系统后台超级管理员才有权限查看
+        // 系统后台超级管理员才有权限查看
         if ($nowUser->level === 99) {
             $list = FileHelper::getDir(realpath(RUNTIME_BASE_PATH . '/' . $path), realpath(RUNTIME_BASE_PATH) . '/');
             foreach ($list as $key => $value) {
-                //如果是隐藏文件，则不返回
+                // 如果是隐藏文件，则不返回
                 if (str_starts_with($value['fileName'], '.')) {
                     unset($list[$key]);
                 }
@@ -64,15 +65,23 @@ class LogController
         $path = str_replace('../', '/', $path);
 
         $nowUser = contextGet('nowUser');
-        //系统后台超级管理员才有权限查看
+        // 系统后台超级管理员才有权限查看
         if ($nowUser->level === 99) {
             $realPath = realpath(RUNTIME_BASE_PATH . '/' . $path);
             if (! $realPath) {
                 return ApiHelper::genErrorData('文件系统中没找到该文件');
             }
+            if (! is_file($realPath)) {
+                return ApiHelper::genErrorData('该文件不能预览');
+            }
+            $ext = strtolower(pathinfo($realPath, PATHINFO_EXTENSION));
+            if (! in_array($ext, ['log', 'pid', 'cache', 'php'])) {
+                return ApiHelper::genErrorData('该文件不能预览');
+            }
+
             $result = FileHelper::getContent($realPath);
 
-            //如果有分页
+            // 如果有分页
             if ($page && (int) $page > 0) {
                 $resultArr = explode(PHP_EOL, $result);
                 $totalLines = count($resultArr);
