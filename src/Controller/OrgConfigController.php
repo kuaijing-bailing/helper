@@ -15,6 +15,7 @@ use Bailing\Annotation\RateRequest;
 use Bailing\Helper\ApiHelper;
 use Bailing\Helper\OrgConfigHelper;
 use Bailing\Helper\StrHelper;
+use Bailing\Middleware\OrgMiddleware;
 use Bailing\Middleware\SystemMiddleware;
 use Hyperf\HttpServer\Annotation\Controller;
 use Hyperf\HttpServer\Annotation\GetMapping;
@@ -22,39 +23,80 @@ use Hyperf\HttpServer\Annotation\Middleware;
 use Hyperf\HttpServer\Annotation\PutMapping;
 
 #[Controller]
-#[Middleware(SystemMiddleware::class)]
 class OrgConfigController
 {
     #[GetMapping(path: '/common/orgConfig/get')]
+    #[Middleware(SystemMiddleware::class)]
     public function get(): array
     {
-        $orgId = request()->input('org_id');
-        $name = request()->input('name');
-        $index = request()->input('index', '');
+        $orgId = intval(request()->input('org_id', 0));
+        $name = StrHelper::mb_trim(strval(request()->input('name', '')));
+        $index = StrHelper::mb_trim(strval(request()->input('index', '')));
 
-        if (! isset($orgId) || $orgId === '' || ! isset($name) || $name === '') {
-            return ApiHelper::genErrorData('org_id 和 name 参数必传');
+        if (empty($orgId) || empty($name)) {
+            return ApiHelper::genErrorData('param[org_id, name] can not empty');
         }
 
-        $result = OrgConfigHelper::getConfig((int) $orgId, StrHelper::mb_trim((string) $name), StrHelper::mb_trim((string) $index));
+        $result = OrgConfigHelper::getConfig($orgId, $name, $index);
 
         return ApiHelper::genSuccessData(['result' => $result]);
     }
 
     #[PutMapping(path: '/common/orgConfig/set')]
+    #[Middleware(SystemMiddleware::class)]
     #[RateRequest]
     public function set(): array
     {
-        $orgId = request()->input('org_id');
-        $name = request()->input('name');
-        $value = request()->input('value');
-        $index = request()->input('index', '');
+        $orgId = intval(request()->input('org_id', 0));
+        $name = StrHelper::mb_trim(strval(request()->input('name', '')));
+        $value = StrHelper::mb_trim(strval(request()->input('value', '')));
+        $index = StrHelper::mb_trim(strval(request()->input('index', '')));
 
-        if (! isset($orgId) || $orgId === '' || ! isset($name) || $name === '' || ! isset($value)) {
-            return ApiHelper::genErrorData('org_id、name 和 value 参数必传');
+        if (empty($orgId) || empty($name) || empty($value)) {
+            return ApiHelper::genErrorData('param[org_id, name, value] can not empty');
         }
 
-        $result = OrgConfigHelper::setConfig((int) $orgId, StrHelper::mb_trim((string) $name), StrHelper::mb_trim((string) $value), StrHelper::mb_trim((string) $index));
+        $result = OrgConfigHelper::setConfig($orgId, $name, $value, $index);
+
+        return ApiHelper::genSuccessData(['result' => $result]);
+    }
+
+    #[GetMapping(path: '/org/common/orgConfig/get')]
+    #[Middleware(OrgMiddleware::class)]
+    public function getOrg(): array
+    {
+        $nowAdmin = contextGet('nowUser');
+        $orgId = $nowAdmin->org_id;
+
+        $name = StrHelper::mb_trim(strval(request()->input('name', '')));
+        $index = StrHelper::mb_trim(strval(request()->input('index', '')));
+
+        if (empty($orgId) || empty($name)) {
+            return ApiHelper::genErrorData('param[name] can not empty');
+        }
+
+        $result = OrgConfigHelper::getConfig($orgId, $name, $index);
+
+        return ApiHelper::genSuccessData(['result' => $result]);
+    }
+
+    #[PutMapping(path: '/org/common/orgConfig/set')]
+    #[Middleware(OrgMiddleware::class)]
+    #[RateRequest]
+    public function setOrg(): array
+    {
+        $nowAdmin = contextGet('nowUser');
+        $orgId = $nowAdmin->org_id;
+
+        $name = StrHelper::mb_trim(strval(request()->input('name', '')));
+        $value = StrHelper::mb_trim(strval(request()->input('value', '')));
+        $index = StrHelper::mb_trim(strval(request()->input('index', '')));
+
+        if (empty($orgId) || empty($name) || empty($value)) {
+            return ApiHelper::genErrorData('param[name, value] can not empty');
+        }
+
+        $result = OrgConfigHelper::setConfig($orgId, $name, $value, $index);
 
         return ApiHelper::genSuccessData(['result' => $result]);
     }
