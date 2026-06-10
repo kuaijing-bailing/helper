@@ -30,14 +30,14 @@ class OrgConfigController
     public function get(): array
     {
         $orgId = intval(request()->input('org_id', 0));
-        $name = StrHelper::mb_trim(strval(request()->input('name', '')));
+        $name = request()->input('name', '');
         $index = StrHelper::mb_trim(strval(request()->input('index', '')));
 
         if (empty($orgId) || empty($name)) {
             return ApiHelper::genErrorData('param[org_id, name] can not empty');
         }
 
-        $result = OrgConfigHelper::getConfig($orgId, $name, $index);
+        $result = $this->fetchConfig($orgId, $name, $index);
 
         return ApiHelper::genSuccessData(['result' => $result]);
     }
@@ -68,14 +68,14 @@ class OrgConfigController
         $nowAdmin = contextGet('nowUser');
         $orgId = $nowAdmin->org_id;
 
-        $name = StrHelper::mb_trim(strval(request()->input('name', '')));
+        $name = request()->input('name', '');
         $index = StrHelper::mb_trim(strval(request()->input('index', '')));
 
         if (empty($orgId) || empty($name)) {
             return ApiHelper::genErrorData('param[name] can not empty');
         }
 
-        $result = OrgConfigHelper::getConfig($orgId, $name, $index);
+        $result = $this->fetchConfig($orgId, $name, $index);
 
         return ApiHelper::genSuccessData(['result' => $result]);
     }
@@ -99,5 +99,27 @@ class OrgConfigController
         $result = OrgConfigHelper::setConfig($orgId, $name, $value, $index);
 
         return ApiHelper::genSuccessData(['result' => $result]);
+    }
+
+    /**
+     * 读取配置：name 为字符串时返回字符串，为数组时返回以 name 为键的数组.
+     * @param array|string $name
+     * @return array|string
+     */
+    private function fetchConfig(int $orgId, $name, string $index)
+    {
+        if (is_array($name)) {
+            $result = [];
+            foreach ($name as $configName) {
+                $configName = StrHelper::mb_trim(strval($configName));
+                if (empty($configName)) {
+                    continue;
+                }
+                $result[$configName] = OrgConfigHelper::getConfig($orgId, $configName, $index);
+            }
+            return $result;
+        }
+
+        return OrgConfigHelper::getConfig($orgId, StrHelper::mb_trim(strval($name)), $index);
     }
 }
