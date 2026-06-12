@@ -23,10 +23,10 @@ use Hyperf\HttpServer\Annotation\Middleware;
 use Hyperf\HttpServer\Annotation\PutMapping;
 
 #[Controller]
+#[Middleware(SystemMiddleware::class)]
 class OrgConfigController
 {
     #[GetMapping(path: '/common/orgConfig/get')]
-    #[Middleware(SystemMiddleware::class)]
     public function get(): array
     {
         $orgId = intval(request()->input('org_id', 0));
@@ -43,7 +43,6 @@ class OrgConfigController
     }
 
     #[PutMapping(path: '/common/orgConfig/set')]
-    #[Middleware(SystemMiddleware::class)]
     #[RateRequest]
     public function set(): array
     {
@@ -61,52 +60,12 @@ class OrgConfigController
         return ApiHelper::genSuccessData(['result' => $result]);
     }
 
-    #[GetMapping(path: '/org/common/orgConfig/get')]
-    #[Middleware(OrgMiddleware::class)]
-    public function getOrg(): array
-    {
-        $nowAdmin = contextGet('nowUser');
-        $orgId = $nowAdmin->org_id;
-
-        $name = request()->input('name', '');
-        $index = StrHelper::mb_trim(strval(request()->input('index', '')));
-
-        if (empty($orgId) || empty($name)) {
-            return ApiHelper::genErrorData('param[name] can not empty');
-        }
-
-        $result = $this->fetchConfig($orgId, $name, $index);
-
-        return ApiHelper::genSuccessData(['result' => $result]);
-    }
-
-    #[PutMapping(path: '/org/common/orgConfig/set')]
-    #[Middleware(OrgMiddleware::class)]
-    #[RateRequest]
-    public function setOrg(): array
-    {
-        $nowAdmin = contextGet('nowUser');
-        $orgId = $nowAdmin->org_id;
-
-        $name = StrHelper::mb_trim(strval(request()->input('name', '')));
-        $value = StrHelper::mb_trim(strval(request()->input('value', '')));
-        $index = StrHelper::mb_trim(strval(request()->input('index', '')));
-
-        if (empty($orgId) || empty($name) || empty($value)) {
-            return ApiHelper::genErrorData('param[name, value] can not empty');
-        }
-
-        $result = OrgConfigHelper::setConfig($orgId, $name, $value, $index);
-
-        return ApiHelper::genSuccessData(['result' => $result]);
-    }
-
     /**
      * 读取配置：name 为字符串时返回字符串，为数组时返回以 name 为键的数组.
      * @param array|string $name
      * @return array|string
      */
-    private function fetchConfig(int $orgId, $name, string $index)
+    private function fetchConfig(int $orgId, array|string $name, string $index): array|string
     {
         if (is_array($name)) {
             $result = [];
