@@ -8,6 +8,7 @@ declare(strict_types=1);
  * @document https://help.kuaijingai.com
  * @contact  www.kuaijingai.com 7*12 9:00-21:00
  */
+
 namespace Bailing\Constants\Code\Common;
 
 use Bailing\Annotation\EnumCode;
@@ -149,9 +150,30 @@ enum CommonCode: int implements EnumCodeInterface
     #[EnumCode(msg: '该用户已登出，请重新登录', i18nMsg: ['en' => 'The user has logged out, please log in again', 'zh_tw' => '該用戶已登出，請重新登錄', 'zh_hk' => '該用戶已登出，請重新登錄', 'ja' => 'ユーザーはログアウトしました。再度ログインしてください。'])]
     case USER_IS_LOGOUT = 44;
 
-	#[EnumCode(msg: '正在后台导入中，结果将以站内信方式告知，请稍后。',i18nMsg: ['en' => 'The data import has importing in the background, the result will be notified by email, please wait', 'zh_tw' => '正在后台導入中，結果將以郵件方式告知，請稍後', 'zh_hk' => '正在后台導入中，結果將以郵件方式告知，請稍後', 'ja' => 'データインポートが背景で行われ、結果はメールで通知されます。しばらくしてから再試行してください。'])]
+    #[EnumCode(msg: '正在后台导入中，结果将以站内信方式告知，请稍后。', i18nMsg: ['en' => 'The data import has importing in the background, the result will be notified by email, please wait', 'zh_tw' => '正在后台導入中，結果將以郵件方式告知，請稍後', 'zh_hk' => '正在后台導入中，結果將以郵件方式告知，請稍後', 'ja' => 'データインポートが背景で行われ、結果はメールで通知されます。しばらくしてから再試行してください。'])]
     case USER_IS_IMPORTING = 45;
 
-	#[EnumCode(msg: '正在后台导出中，结果将以站内信方式告知，请稍后。',i18nMsg: ['en' => 'The data export has exporting in the background, the result will be notified by email, please wait', 'zh_tw' => '正在后台導出中，結果將以郵件方式告知，請稍後', 'zh_hk' => '正在后台導出中，結果將以郵件方式告知，請稍後', 'ja' => 'データエクスポートが背景で行われ、結果はメールで通知されます。しばらくしてから再試行してください。'])]
+    #[EnumCode(msg: '正在后台导出中，结果将以站内信方式告知，请稍后。', i18nMsg: ['en' => 'The data export has exporting in the background, the result will be notified by email, please wait', 'zh_tw' => '正在后台導出中，結果將以郵件方式告知，請稍後', 'zh_hk' => '正在后台導出中，結果將以郵件方式告知，請稍後', 'ja' => 'データエクスポートが背景で行われ、結果はメールで通知されます。しばらくしてから再試行してください。'])]
     case USER_IS_EXPORTING = 46;
+
+    #[EnumCode(msg: '请求服务接口失败：{error_msg}', i18nMsg: ['en' => 'Failed to request service API: {error_msg}', 'zh_tw' => '請求服務接口失敗：{error_msg}', 'zh_hk' => '請求服務接口失敗：{error_msg}', 'ja' => 'サービスAPIのリクエストに失敗しました：{error_msg}'])]
+    case HTTP_SERVICE_REQUEST_FAILED = 47;
+
+    #[EnumCode(msg: '请求服务接口返回失败（{status_code}）：{error_msg}', i18nMsg: ['en' => 'Service API returned an error ({status_code}): {error_msg}', 'zh_tw' => '請求服務接口返回失敗（{status_code}）：{error_msg}', 'zh_hk' => '請求服務接口返回失敗（{status_code}）：{error_msg}', 'ja' => 'サービスAPIがエラーを返しました（{status_code}）：{error_msg}'])]
+    case HTTP_SERVICE_RESPONSE_FAILED = 48;
+
+    #[EnumCode(msg: '请求接口失败：{error_msg}', i18nMsg: ['en' => 'Failed to request API: {error_msg}', 'zh_tw' => '請求接口失敗：{error_msg}', 'zh_hk' => '請求接口失敗：{error_msg}', 'ja' => 'APIのリクエストに失敗しました：{error_msg}'])]
+    case HTTP_REQUEST_FAILED = 49;
+
+    #[EnumCode(msg: '请求接口返回失败（{status_code}）：{error_msg}', i18nMsg: ['en' => 'API returned an error ({status_code}): {error_msg}', 'zh_tw' => '請求接口返回失敗（{status_code}）：{error_msg}', 'zh_hk' => '請求接口返回失敗（{status_code}）：{error_msg}', 'ja' => 'APIがエラーを返しました（{status_code}）：{error_msg}'])]
+    case HTTP_RESPONSE_FAILED = 50;
+
+    #[EnumCode(msg: '下载失败：{error_msg}', i18nMsg: ['en' => 'Download failed: {error_msg}', 'zh_tw' => '下載失敗：{error_msg}', 'zh_hk' => '下載失敗：{error_msg}', 'ja' => 'ダウンロードに失敗しました：{error_msg}'])]
+    case HTTP_DOWNLOAD_FAILED = 51;
+
+    #[EnumCode(msg: '下载失败（{status_code}）：{error_msg}', i18nMsg: ['en' => 'Download failed ({status_code}): {error_msg}', 'zh_tw' => '下載失敗（{status_code}）：{error_msg}', 'zh_hk' => '下載失敗（{status_code}）：{error_msg}', 'ja' => 'ダウンロードに失敗しました（{status_code}）：{error_msg}'])]
+    case HTTP_DOWNLOAD_RESPONSE_FAILED = 52;
+
+    #[EnumCode(msg: '下载失败：保存文件失败', i18nMsg: ['en' => 'Download failed: failed to save file', 'zh_tw' => '下載失敗：保存文件失敗', 'zh_hk' => '下載失敗：保存文件失敗', 'ja' => 'ダウンロードに失敗しました：ファイルの保存に失敗しました'])]
+    case HTTP_DOWNLOAD_SAVE_FAILED = 53;
 }
