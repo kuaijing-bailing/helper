@@ -52,7 +52,7 @@ class OrgPermission extends AbstractAnnotation
 
     public int $parentOrgId = 0; // 固定的父自增ID
 
-    public bool $hideInternationalize = true; // 是否在多语言环境隐藏
+    public bool $hideInternationalize = false; // 是否在多语言环境隐藏
 
     public array $org_app = []; // 关联子系统的菜单
 
