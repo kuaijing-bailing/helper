@@ -30,13 +30,18 @@ use Vtiful\Kernel\Validation;
 
 class XlsWriter extends Excel implements ExcelPropertyInterface
 {
+    private const IMPORT_FILE_DIR_NAME = 'import_file';
+
+    private const IMPORT_FILE_DIR_PERMISSION = 0777;
+
     public static function getSheetData(mixed $request): array
     {
         $file = $request->file('file');
         $tempFileName = 'import_' . time() . '.' . $file->getExtension();
-        $tempFilePath = RUNTIME_BASE_PATH . '/' . $tempFileName;
+        $tempFileDir = self::initImportFileDir();
+        $tempFilePath = $tempFileDir . $tempFileName;
         file_put_contents($tempFilePath, $file->getStream()->getContents());
-        $xlsxObject = new \Vtiful\Kernel\Excel(['path' => RUNTIME_BASE_PATH . '/']);
+        $xlsxObject = new \Vtiful\Kernel\Excel(['path' => $tempFileDir]);
         return $xlsxObject->openFile($tempFileName)->openSheet()->getSheetData();
     }
 
@@ -49,9 +54,10 @@ class XlsWriter extends Excel implements ExcelPropertyInterface
         if ($request->hasFile('file')) {
             $file = $request->file('file');
             $tempFileName = 'import_' . time() . '_' . mt_rand(10000, 99999) . '.' . $file->getExtension();
-            $tempFilePath = RUNTIME_BASE_PATH . '/' . $tempFileName;
+            $tempFileDir = self::initImportFileDir();
+            $tempFilePath = $tempFileDir . $tempFileName;
             file_put_contents($tempFilePath, $file->getStream()->getContents());
-            $xlsxObject = new \Vtiful\Kernel\Excel(['path' => RUNTIME_BASE_PATH . '/']);
+            $xlsxObject = new \Vtiful\Kernel\Excel(['path' => $tempFileDir]);
 
             // 统一设置为字符串类型
             $setTypeArr = [];
@@ -166,7 +172,7 @@ class XlsWriter extends Excel implements ExcelPropertyInterface
                         throw new \Exception($e->getMessage());
                     }
                 }
-
+                @unlink($tempFilePath);
                 return true;
             }
 
@@ -399,5 +405,15 @@ class XlsWriter extends Excel implements ExcelPropertyInterface
         @unlink($filePath);
 
         return $res;
+    }
+
+    private static function initImportFileDir(): string
+    {
+        $tempFileDir = RUNTIME_BASE_PATH . '/' . self::IMPORT_FILE_DIR_NAME . '/';
+        if (! is_dir($tempFileDir)) {
+            mkdir($tempFileDir, self::IMPORT_FILE_DIR_PERMISSION, true);
+        }
+
+        return $tempFileDir;
     }
 }

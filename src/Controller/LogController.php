@@ -42,8 +42,14 @@ class LogController
                     unset($list[$key]);
                 }
             }
-            $list = arraySort($list, 'fileName');
-            return ApiHelper::genSuccessData(['result' => array_values($list)], '获取成功');
+            usort($list, static function (array $first, array $second): int {
+                if ($first['isDir'] !== $second['isDir']) {
+                    return $first['isDir'] ? -1 : 1;
+                }
+
+                return strcmp((string) $first['fileName'], (string) $second['fileName']);
+            });
+            return ApiHelper::genSuccessData(['result' => array_values($list)]);
         }
 
         return ApiHelper::genErrorData('暂无权限查看', 4001);
