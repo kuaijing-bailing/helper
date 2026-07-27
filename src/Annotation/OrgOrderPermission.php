@@ -18,9 +18,13 @@ class OrgOrderPermission extends AbstractAnnotation
 {
     public string $alias = '';
 
+    public string $class = '';
+
     public function __construct(
-        string $alias = ''
+        string $alias = '',
+        string $class = ''
     ) {
         $this->alias = $alias;
+        $this->class = $class;
     }
 }

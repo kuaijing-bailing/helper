@@ -93,7 +93,13 @@ class OrgOrderPermissionAspect extends AbstractAspect
             return '';
         }
 
-        return $proceedingJoinPoint->className . ':' . $proceedingJoinPoint->methodName . ucfirst($alias);
+        $alias = ucfirst($alias);
+        $className = $annotation->class === '' ? $proceedingJoinPoint->className : $this->resolveTemplate($annotation->class);
+        if ($className === '') {
+            return '';
+        }
+
+        return $className . ':' . $proceedingJoinPoint->methodName . $alias;
     }
 
     private function resolveTemplate(string $template): string
