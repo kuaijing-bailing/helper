@@ -8,8 +8,10 @@ declare(strict_types=1);
  * @document https://help.kuaijingai.com
  * @contact  www.kuaijingai.com 7*12 9:00-21:00
  */
+
 namespace Bailing\Middleware;
 
+use App\JsonRpc\OrgService;
 use Bailing\Annotation\EnumCodeInterface;
 use Bailing\Constants\Code\Common\CommonCode;
 use Bailing\Helper\ApiHelper;
@@ -32,7 +34,7 @@ use Psr\Http\Server\RequestHandlerInterface;
 
 class OrgMiddleware implements MiddlewareInterface
 {
-    private const SUPER_ROLE_LEVEL = 99; //机构创建者
+    private const SUPER_ROLE_LEVEL = 99; // 机构创建者
 
     protected ContainerInterface $container;
 
@@ -62,13 +64,13 @@ class OrgMiddleware implements MiddlewareInterface
                 $annotationsMiddleware = array_values($annotationsMiddleware);
                 array_walk($annotationsMiddleware, function (&$val, $key) {$val = array_unique(array_column((array) $val, 'middleware')); });
             }
-            //放行中间件配置项
+            // 放行中间件配置项
             $passOtherMiddleware = ['Bailing\Middleware\UserMiddleware', 'Bailing\Middleware\SystemMiddleware'];
             $passAuth = array_intersect($annotationsMiddleware[0], $passOtherMiddleware);
             if (! empty($passAuth)) {
                 return $handler->handle($request);
             }
-            //针对单个接口继承多个服务中间件鉴权 则只校验本服务token-type的token 其他服务则放行
+            // 针对单个接口继承多个服务中间件鉴权 则只校验本服务token-type的token 其他服务则放行
         }
         if (! $jwtData) { // 未登录，或登录状态超过30分钟
             return self::json(CommonCode::NEED_LOGIN);
@@ -84,13 +86,13 @@ class OrgMiddleware implements MiddlewareInterface
         $jwtData->data->tokenType = 'org';
 
         if (isset($jwtData->data->level) && $jwtData->data->level == self::SUPER_ROLE_LEVEL) { // 机构创建者=超级管理员 拥有最高访问权限
-            contextSet('nowUser', $jwtData->data); //将登录信息存储到协程上下文
+            contextSet('nowUser', $jwtData->data); // 将登录信息存储到协程上下文
             unset($jwtData);
             return $handler->handle($request);
         }
-        //放行不配置org权限菜单注解的路由
-        if (! array_key_exists('Bailing\Annotation\OrgPermission', $annotations)) {
-            contextSet('nowUser', $jwtData->data); //将登录信息存储到协程上下文
+        // 放行不配置org权限菜单注解的路由，或交给动态菜单权限切面校验的路由
+        if (! array_key_exists('Bailing\Annotation\OrgPermission', $annotations) || array_key_exists('Bailing\Annotation\OrgOrderPermission', $annotations)) {
+            contextSet('nowUser', $jwtData->data); // 将登录信息存储到协程上下文
             unset($jwtData);
             return $handler->handle($request);
         }
@@ -106,12 +108,12 @@ class OrgMiddleware implements MiddlewareInterface
             }
             return self::json(CommonCode::AUTH_ERROR, ApiHelper::AUTH_ERROR);
         }
-        contextSet('nowUser', $jwtData->data); //将登录信息存储到协程上下文
+        contextSet('nowUser', $jwtData->data); // 将登录信息存储到协程上下文
         unset($jwtData, $adminRole);
         return $handler->handle($request);
     }
 
-    private static function json(string|array|EnumCodeInterface $msg, int $errCode = ApiHelper::LOGIN_ERROR)
+    private static function json(array|EnumCodeInterface|string $msg, int $errCode = ApiHelper::LOGIN_ERROR)
     {
         $body = new SwooleStream(Json::encode(ApiHelper::genErrorData($msg, $errCode)));
         return Context::get(ResponseInterface::class)
@@ -127,10 +129,10 @@ class OrgMiddleware implements MiddlewareInterface
      * @throws ContainerExceptionInterface
      * @throws NotFoundExceptionInterface
      */
-    private function allowAccess(int|array $roleId, int $orgId, int $userId): bool
+    private function allowAccess(array|int $roleId, int $orgId, int $userId): bool
     {
         if (env('APP_NAME') == 'org' && class_exists('\App\JsonRpc\OrgService')) {
-            $orgService = container()->get(\App\JsonRpc\OrgService::class)->getRoleRbacList(is_array($roleId) ? $roleId : [$roleId], $orgId, $userId);
+            $orgService = container()->get(OrgService::class)->getRoleRbacList(is_array($roleId) ? $roleId : [$roleId], $orgId, $userId);
         } else {
             $orgService = container()->get(OrgServiceInterface::class)->getRoleRbacList(is_array($roleId) ? $roleId : [$roleId], $orgId, $userId);
         }
@@ -149,7 +151,7 @@ class OrgMiddleware implements MiddlewareInterface
     {
         $adminModule = RequestHelper::getAdminModule();
         if (env('APP_NAME') == 'org' && class_exists('\App\JsonRpc\OrgService')) {
-            $authResult = container()->get(\App\JsonRpc\OrgService::class)->getMenuAuthName($adminModule);
+            $authResult = container()->get(OrgService::class)->getMenuAuthName($adminModule);
         } else {
             $authResult = container()->get(OrgServiceInterface::class)->getMenuAuthName($adminModule);
         }

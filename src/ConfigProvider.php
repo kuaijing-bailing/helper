@@ -8,10 +8,14 @@ declare(strict_types=1);
  * @document https://help.kuaijingai.com
  * @contact  www.kuaijingai.com 7*12 9:00-21:00
  */
+
 namespace Bailing;
 
+use Bailing\Aspect\OrgOrderPermissionAspect;
 use Bailing\Aspect\RateRequestAspect;
 use Bailing\Aspect\RateWaitAspect;
+use Bailing\IotCloud\HikCloud\Application;
+use Bailing\IotCloud\HikCloud\ApplicationFactory;
 use Bailing\Middleware\TranslationMiddleware;
 
 class ConfigProvider
@@ -20,13 +24,14 @@ class ConfigProvider
     {
         return [
             'aspects' => [
+                OrgOrderPermissionAspect::class,
                 RateRequestAspect::class,
                 RateWaitAspect::class,
             ],
             'dependencies' => [
-                \Bailing\IotCloud\HikCloud\Application::class => \Bailing\IotCloud\HikCloud\ApplicationFactory::class,
-                \Bailing\IotCloud\YunRui\Application::class => \Bailing\IotCloud\YunRui\ApplicationFactory::class,
-                \Bailing\IotCloud\Ys7\Application::class => \Bailing\IotCloud\Ys7\ApplicationFactory::class,
+                Application::class => ApplicationFactory::class,
+                IotCloud\YunRui\Application::class => IotCloud\YunRui\ApplicationFactory::class,
+                IotCloud\Ys7\Application::class => IotCloud\Ys7\ApplicationFactory::class,
             ],
             'listeners' => [
             ],
