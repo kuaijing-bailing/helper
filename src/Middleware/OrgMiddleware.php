@@ -90,8 +90,16 @@ class OrgMiddleware implements MiddlewareInterface
             unset($jwtData);
             return $handler->handle($request);
         }
-        // 放行不配置org权限菜单注解的路由，或交给动态菜单权限切面校验的路由
-        if (! array_key_exists('Bailing\Annotation\OrgPermission', $annotations) || array_key_exists('Bailing\Annotation\OrgOrderPermission', $annotations)) {
+        $hasOrgOrderPermission = array_key_exists('Bailing\Annotation\OrgOrderPermission', $annotations);
+        $hasOrgPermission = array_key_exists('Bailing\Annotation\OrgPermission', $annotations);
+        if ($hasOrgOrderPermission) {
+            if (! $hasOrgPermission) {
+                contextSet('org_permission_source', 'aspect');
+                contextSet('nowUser', $jwtData->data); // 将登录信息存储到协程上下文
+                unset($jwtData);
+                return $handler->handle($request);
+            }
+        } elseif (! $hasOrgPermission) {
             contextSet('nowUser', $jwtData->data); // 将登录信息存储到协程上下文
             unset($jwtData);
             return $handler->handle($request);
@@ -102,11 +110,20 @@ class OrgMiddleware implements MiddlewareInterface
             return self::json(CommonCode::NOT_BIND_ROLE, ApiHelper::AUTH_ERROR);
         }
         if (! $adminRole || ! $this->allowAccess($jwtData->data->role_id, $jwtData->data->org_id, $jwtData->data->id)) {
+            if ($hasOrgOrderPermission) {
+                contextSet('org_permission_source', 'aspect');
+                contextSet('nowUser', $jwtData->data); // 将登录信息存储到协程上下文
+                unset($jwtData, $adminRole);
+                return $handler->handle($request);
+            }
             $authName = $this->getAuthName();
             if (! empty($authName)) {
                 return self::json(CommonCode::AUTH_ERROR_ACTION->genI18nMsg(['action' => $authName]), ApiHelper::AUTH_ERROR);
             }
             return self::json(CommonCode::AUTH_ERROR, ApiHelper::AUTH_ERROR);
+        }
+        if ($hasOrgOrderPermission) {
+            contextSet('org_permission_source', 'middleware');
         }
         contextSet('nowUser', $jwtData->data); // 将登录信息存储到协程上下文
         unset($jwtData, $adminRole);

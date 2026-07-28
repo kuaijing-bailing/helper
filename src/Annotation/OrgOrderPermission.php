@@ -16,15 +16,15 @@ use Hyperf\Di\Annotation\AbstractAnnotation;
 #[\Attribute(\Attribute::TARGET_CLASS | \Attribute::TARGET_METHOD)]
 class OrgOrderPermission extends AbstractAnnotation
 {
-    public string $alias = '';
-
     public string $class = '';
 
+    public string $module = '';
+
     public function __construct(
-        string $alias = '',
-        string $class = ''
+        string $class = '',
+        string $module = '',
     ) {
-        $this->alias = $alias;
         $this->class = $class;
+        $this->module = $module;
     }
 }

@@ -34,6 +34,10 @@ class OrgOrderPermissionAspect extends AbstractAspect
 
     public function process(ProceedingJoinPoint $proceedingJoinPoint)
     {
+        if (contextGet('org_permission_source') === 'middleware') {
+            return $proceedingJoinPoint->process();
+        }
+
         $annotation = $this->getAnnotation($proceedingJoinPoint);
         if (! $annotation) {
             return $proceedingJoinPoint->process();
@@ -88,18 +92,17 @@ class OrgOrderPermissionAspect extends AbstractAspect
 
     private function buildPermissionKey(ProceedingJoinPoint $proceedingJoinPoint, OrgOrderPermission $annotation): string
     {
-        $alias = $this->resolveTemplate($annotation->alias);
-        if ($alias === '') {
+        $module = $this->resolveTemplate($annotation->module);
+        if ($module === '') {
             return '';
         }
 
-        $alias = ucfirst($alias);
-        $className = $annotation->class === '' ? $proceedingJoinPoint->className : $this->resolveTemplate($annotation->class);
+        $className = $this->resolveTemplate($annotation->class);
         if ($className === '') {
             return '';
         }
 
-        return $className . ':' . $proceedingJoinPoint->methodName . $alias;
+        return $className . ':' . $module;
     }
 
     private function resolveTemplate(string $template): string
