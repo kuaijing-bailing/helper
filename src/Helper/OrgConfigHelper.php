@@ -89,7 +89,7 @@ class OrgConfigHelper
             'org_id' => $orgId,
             'name' => $name,
         ];
-        ! empty($index) && $where['index'] = $index;
+        $index !== '' && $where['index'] = $index;
         $configValue = Db::table('bailing_org_config')->where($where)->value('value');
         return (string) $configValue;
     }
@@ -125,7 +125,7 @@ class OrgConfigHelper
             'org_id' => $orgId,
             'name' => $name,
         ];
-        ! empty($index) && $where['index'] = $index;
+        $index !== '' && $where['index'] = $index;
         $configArr = Db::table('bailing_org_config')->where($where)->first();
         if (! $configArr) {
             Db::table('bailing_org_config')->insert([
