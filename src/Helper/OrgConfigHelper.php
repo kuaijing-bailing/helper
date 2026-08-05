@@ -8,9 +8,11 @@ declare(strict_types=1);
  * @document https://help.kuaijingai.com
  * @contact  www.kuaijingai.com 7*12 9:00-21:00
  */
+
 namespace Bailing\Helper;
 
 use Bailing\JsonRpc\Org\OrgUserServiceInterface;
+use Bailing\Model\BailingOrgConfig;
 use Hyperf\Cache\Annotation\Cacheable;
 use Hyperf\Cache\Annotation\CacheEvict;
 use Hyperf\Cache\Annotation\CachePut;
@@ -18,8 +20,6 @@ use Hyperf\Codec\Json;
 use Hyperf\Database\Schema\Blueprint;
 use Hyperf\Database\Schema\Schema;
 use Hyperf\DbConnection\Db;
-use Psr\Container\ContainerExceptionInterface;
-use Psr\Container\NotFoundExceptionInterface;
 
 class OrgConfigHelper
 {
@@ -57,7 +57,7 @@ class OrgConfigHelper
     /**
      * 读取数组格式的配置值（缓存10分钟），自行保证写时的缓存是数组.
      */
-    public static function getConfigArr(int $orgId, string $name, string|int $index = '', bool $getOrgServiceData = false): array
+    public static function getConfigArr(int $orgId, string $name, int|string $index = '', bool $getOrgServiceData = false): array
     {
         $config = self::getConfig($orgId, $name, $index, $getOrgServiceData);
         if (empty($config)) {
@@ -70,20 +70,18 @@ class OrgConfigHelper
      * 读取配置值（缓存10分钟）.
      * @param int $orgId 机构ID
      * @param string $name 配置名
-     * @param string|int $index 唯一索引值，用于细项配置（例如 项目ID_楼宇ID，店铺ID）
+     * @param int|string $index 唯一索引值，用于细项配置（例如 项目ID_楼宇ID，店铺ID）
      * @param bool $getOrgServiceData 从org微服务获取
-     * @return string
      */
     #[Cacheable(prefix: 'bailingOrgConfig', value: '_#{orgId}_#{name}_#{index}_#{getOrgServiceData}', ttl: 600)]
-    public static function getConfig(int $orgId, string $name, string|int $index = '', bool $getOrgServiceData = false): string
+    public static function getConfig(int $orgId, string $name, int|string $index = '', bool $getOrgServiceData = false): string
     {
         if ($getOrgServiceData) {
             $orgResult = container()->get(OrgUserServiceInterface::class)->call('getBailingOrgConfig', ['org_id' => $orgId, 'name' => $name, 'index' => $index]);
             if (ApiHelper::checkDataOk($orgResult)) {
                 return (string) $orgResult['data']['result'];
-            } else {
-                return '';
             }
+            return '';
         }
         $where = [
             'org_id' => $orgId,
@@ -97,7 +95,7 @@ class OrgConfigHelper
     /**
      * 写数组格式的配置值.
      */
-    public static function setConfigArr(int $orgId, string $name, array $value, string|int $index = '', bool $setOrgServiceData = false): string
+    public static function setConfigArr(int $orgId, string $name, array $value, int|string $index = '', bool $setOrgServiceData = false): string
     {
         return self::setConfig($orgId, $name, Json::encode($value ?: []), $index, $setOrgServiceData);
     }
@@ -107,18 +105,17 @@ class OrgConfigHelper
      * @param int $orgId 机构ID
      * @param string $name 配置名称
      * @param string $value 配置值
-     * @param string|int $index 唯一索引值，用于细项配置（例如 项目ID_楼宇ID，店铺ID）
+     * @param int|string $index 唯一索引值，用于细项配置（例如 项目ID_楼宇ID，店铺ID）
      */
     #[CachePut(prefix: 'bailingOrgConfig', value: '_#{orgId}_#{name}_#{index}_#{setOrgServiceData}', ttl: 600)]
-    public static function setConfig(int $orgId, string $name, string $value, string|int $index = '', bool $setOrgServiceData = false): string
+    public static function setConfig(int $orgId, string $name, string $value, int|string $index = '', bool $setOrgServiceData = false): string
     {
         if ($setOrgServiceData) {
             $orgResult = container()->get(OrgUserServiceInterface::class)->call('setBailingOrgConfig', ['org_id' => $orgId, 'name' => $name, 'value' => $value, 'index' => $index]);
             if (ApiHelper::checkDataOk($orgResult)) {
                 return (string) $orgResult['data']['result'];
-            } else {
-                return '';
             }
+            return '';
         }
 
         $where = [
@@ -146,13 +143,33 @@ class OrgConfigHelper
     }
 
     /**
+     * 删除配置值并清除缓存.
+     * @param int $orgId 机构ID
+     * @param string $name 配置名
+     * @param int|string $index 唯一索引值，用于细项配置（例如 项目ID_楼宇ID，店铺ID）
+     */
+    #[CacheEvict(prefix: 'bailingOrgConfig', value: '_#{orgId}_#{name}_#{index}_')]
+    public static function deleteConfig(int $orgId, string $name, int|string $index = ''): int
+    {
+        $where = [
+            'org_id' => $orgId,
+            'name' => $name,
+        ];
+        $index !== '' && $where['index'] = $index;
+        $configs = BailingOrgConfig::query()->where($where)->get();
+        $deletedCount = 0;
+        foreach ($configs as $config) {
+            $deletedCount += (int) $config->delete();
+        }
+        return $deletedCount;
+    }
+
+    /**
      * 清除配置值（缓存10分钟）.
      * @param int $orgId 机构ID
      * @param string $name 配置名
-     * @param string|int $index 唯一索引值，用于细项配置（例如 项目ID_楼宇ID，店铺ID）
+     * @param int|string $index 唯一索引值，用于细项配置（例如 项目ID_楼宇ID，店铺ID）
      */
     #[CacheEvict(prefix: 'bailingOrgConfig', value: '_#{orgId}_#{name}_#{index}')]
-    public static function clearCache(int $orgId, string $name, string|int $index = ''): void
-    {
-    }
+    public static function clearCache(int $orgId, string $name, int|string $index = ''): void {}
 }
