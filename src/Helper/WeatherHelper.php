@@ -42,14 +42,14 @@ class WeatherHelper
         try {
             $res = $client->request('GET', $url);
         } catch (GuzzleException $e) {
-            stdLog()->error('和风天气访问失败（' . $url . '）：' . $e->getMessage());
+            stdLog()->warning('和风天气访问失败（' . $url . '）：' . $e->getMessage());
             return [];
         }
 
         $body = (string) $res->getBody();
         $bodyArr = Json::decode($body, true);
         if ($bodyArr['code'] != '200') {
-            stdLog()->error('和风天气访问失败（' . $url . '）：' . $bodyArr['code']);
+            stdLog()->warning('和风天气访问失败（' . $url . '）：' . $bodyArr['code']);
             return [];
         }
 
@@ -87,7 +87,7 @@ class WeatherHelper
         try {
             $res = $client->request('GET', $url);
         } catch (GuzzleException $e) {
-            stdLog()->error('和风天气访问失败（' . $url . '）：' . $e->getMessage());
+            stdLog()->warning('和风天气访问失败（' . $url . '）：' . $e->getMessage());
 
             return [];
         }
@@ -95,7 +95,7 @@ class WeatherHelper
         $body = (string) $res->getBody();
         $bodyArr = Json::decode($body, true);
         if ($bodyArr['code'] != '200') {
-            stdLog()->error('和风天气访问失败（' . $url . '）：' . $bodyArr['code']);
+            stdLog()->warning('和风天气访问失败（' . $url . '）：' . $bodyArr['code']);
 
             return [];
         }
@@ -125,7 +125,7 @@ class WeatherHelper
         try {
             $res = $client->request('GET', $url);
         } catch (GuzzleException $e) {
-            stdLog()->error('和风天气访问失败（' . $url . '）：' . $e->getMessage());
+            stdLog()->warning('和风天气访问失败（' . $url . '）：' . $e->getMessage());
 
             return [];
         }
@@ -133,7 +133,7 @@ class WeatherHelper
         $body = (string) $res->getBody();
         $bodyArr = Json::decode($body, true);
         if ($bodyArr['code'] != '200') {
-            stdLog()->error('和风天气访问失败（' . $url . '）：' . $bodyArr['code']);
+            stdLog()->warning('和风天气访问失败（' . $url . '）：' . $bodyArr['code']);
 
             return [];
         }
@@ -157,18 +157,18 @@ class WeatherHelper
         try {
             $res = $client->request('GET', $url);
         } catch (GuzzleException $e) {
-            stdLog()->error('和风天气访问失败（' . $url . '）：' . $e->getMessage());
+            stdLog()->warning('和风天气访问失败（' . $url . '）：' . $e->getMessage());
             return [];
         }
 
         $body = (string) $res->getBody();
         $bodyArr = Json::decode($body, true);
         if (! is_array($bodyArr)) {
-            stdLog()->error('和风天气访问失败（' . $url . '）：empty body');
+            stdLog()->warning('和风天气访问失败（' . $url . '）：empty body');
             return [];
         }
         if (! empty($bodyArr['code']) && $bodyArr['code'] != '200') {
-            stdLog()->error('和风天气访问失败（' . $url . '）：' . $bodyArr['code']);
+            stdLog()->warning('和风天气访问失败（' . $url . '）：' . $bodyArr['code']);
             return [];
         }
 
@@ -196,19 +196,19 @@ class WeatherHelper
         try {
             $res = $client->request('GET', $url);
         } catch (GuzzleException $e) {
-            stdLog()->error('和风天气访问失败（' . $url . '）：' . $e->getMessage());
+            stdLog()->warning('和风天气访问失败（' . $url . '）：' . $e->getMessage());
             return 0;
         }
 
         $body = (string) $res->getBody();
         $bodyArr = Json::decode($body, true);
         if ($bodyArr['code'] != '200') {
-            stdLog()->error('和风天气访问失败（' . $url . '）：' . $bodyArr['code']);
+            stdLog()->warning('和风天气访问失败（' . $url . '）：' . $bodyArr['code']);
             return 0;
         }
 
         if (empty($bodyArr['location'])) {
-            stdLog()->error('和风天气查询失败（' . $url . '）：', $bodyArr['location'] ?? []);
+            stdLog()->warning('和风天气查询失败（' . $url . '）：', $bodyArr['location'] ?? []);
             return 0;
         }
 
