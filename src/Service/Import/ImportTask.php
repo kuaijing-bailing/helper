@@ -105,7 +105,7 @@ class ImportTask
             if (count($errorData) > 0) {
                 $fileName = 'import_error_' . date('Ymd-His') . '.xlsx';
                 try {
-                    $fileResult = (new Collection())->export($dtoClass, $fileName, $errorData, $extraInfo, false, $orgId, ['check_build' => $checkedBuild, 'out_type' => 'file']);
+                    $fileResult = (new Collection())->export($dtoClass, $fileName, $errorData, $extraInfo, false, $orgId, ['check_build' => $checkedBuild, 'out_type' => 'file','operate_uid' => $operateId]);
                 } catch (\Exception $e) {
                     throw new \Exception($e->getMessage());
                 }

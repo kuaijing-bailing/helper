@@ -117,10 +117,17 @@ class OperationLogMiddleware implements MiddlewareInterface
         }
 
         // 将日志存储到amqp中
-        $message = new OperationLogProducer($operationLog);
-        $producer = container()->get(Producer::class);
-        $proResult = $producer->produce($message);
-        stdLog()->debug('OperationLogProducer amqp', [$proResult]);
+        try {
+            $message = new OperationLogProducer($operationLog);
+            $producer = container()->get(Producer::class);
+            $proResult = $producer->produce($message);
+            stdLog()->debug('OperationLogProducer amqp', [$proResult]);
+        } catch (\Throwable $e) {
+            stdLog()->error('OperationLogProducer amqp failed', [
+                'error' => $e->getMessage(),
+                'router' => $operationLog['router'],
+            ]);
+        }
 
         return $result;
     }
