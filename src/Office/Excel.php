@@ -8,6 +8,7 @@ declare(strict_types=1);
  * @document https://help.kuaijingai.com
  * @contact  www.kuaijingai.com 7*12 9:00-21:00
  */
+
 namespace Bailing\Office;
 
 use Bailing\Constants\I18n\Common\CommonI18n;
@@ -40,7 +41,7 @@ abstract class Excel
 
     protected int $orgId = 0;
 
-	protected array $checkBuild = [];
+    protected array $checkBuild = [];
 
     public function __construct(string $dto, array $extraData = [], bool $isDemo = false, int $orgId = 0, array $infos = [])
     {
@@ -53,7 +54,7 @@ abstract class Excel
             $this->dictData = $dtoObject->dictData();
         }
         $this->orgId = $orgId;
-		$this->checkBuild = $infos['check_build'] ?? [];
+        $this->checkBuild = $infos['check_build'] ?? [];
         $this->annotationMate = AnnotationCollector::get($dto);
 
         // 处理国际化翻译 start
@@ -123,7 +124,7 @@ abstract class Excel
             );
         }
 
-        $this->parseProperty();
+        $this->parseProperty($infos);
     }
 
     public function getProperty(): array
@@ -136,13 +137,13 @@ abstract class Excel
         return $this->annotationMate;
     }
 
-    protected function parseProperty(): void
+    protected function parseProperty($infos): void
     {
         if (empty($this->annotationMate) || ! isset($this->annotationMate['_c'])) {
             throw new BusinessException(0, 'Dto annotation info is empty');
         }
 
-        $this->nowLang = I18nHelper::getNowLang();
+        $this->nowLang = ! empty($infos['operate_uid']) ? I18nHelper::getUserNowLang((int) $infos['operate_uid']) : I18nHelper::getNowLang();
 
         foreach ($this->annotationMate['_p'] as $name => $mate) {
             $value = $mate[self::ANNOTATION_NAME]->i18nValue[$this->nowLang] ?? $mate[self::ANNOTATION_NAME]->value;
@@ -173,7 +174,7 @@ abstract class Excel
         // 批量替换字典
         $dictNameArr = arrayColumnUnique($this->property, 'dictName');
         if (! empty($dictNameArr)) {
-            $dictResult = container()->get(OrgUserServiceInterface::class)->call('getSystemDictData', ['org_id' => $this->orgId, 'typeArr' => $dictNameArr, 'checkedBuild' => ! empty($this->checkBuild)? $this->checkBuild : getCheckedBuild()]);
+            $dictResult = container()->get(OrgUserServiceInterface::class)->call('getSystemDictData', ['org_id' => $this->orgId, 'typeArr' => $dictNameArr, 'checkedBuild' => ! empty($this->checkBuild) ? $this->checkBuild : getCheckedBuild()]);
             if (empty($dictResult['data']['list'])) {
                 throw new \Exception('Dict is empty, please check');
             }
