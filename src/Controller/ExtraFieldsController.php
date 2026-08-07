@@ -164,6 +164,8 @@ class ExtraFieldsController
         isset($post['option_max']) && $model->option_max = (int) $post['option_max'];
         isset($post['file_type']) && $model->file_type = (string) $post['file_type'];
         isset($post['sort']) && $model->sort = (int) $post['sort'];
+        // 用户端展示 0 = 不展示 1 = 展示
+        isset($post['user_show']) && $model->user_show = (int) $post['user_show'];
 
         if (! $model->save()) {
             return ApiHelper::genErrorData(CommonCode::SAVE_FAILED);

@@ -28,6 +28,7 @@ namespace Bailing\Model;
  * @property string $file_type 允许上传文件类型
  * @property int $sort 排序字段，越大越靠前
  * @property int $is_system 是否为系统字段,0否1是
+ * @property int $user_show 用户端是否显示,1显示0不显示
  * @property \Carbon\Carbon $created_at
  * @property \Carbon\Carbon $updated_at
  * @property int $created_uid 数据创建者uid
@@ -51,7 +52,7 @@ class BailingExtraFields extends Model
     /**
      * The attributes that should be cast to native types.
      */
-    protected array $casts = ['id' => 'integer', 'org_id' => 'integer', 'fill' => 'integer', 'min_length' => 'integer', 'max_length' => 'integer', 'date_type' => 'integer', 'option_max' => 'integer', 'sort' => 'integer', 'is_system' => 'integer', 'created_at' => 'datetime', 'updated_at' => 'datetime', 'created_uid' => 'integer', 'updated_uid' => 'integer', 'option_value' => 'array'];
+    protected array $casts = ['id' => 'integer', 'org_id' => 'integer', 'fill' => 'integer', 'min_length' => 'integer', 'max_length' => 'integer', 'date_type' => 'integer', 'option_max' => 'integer', 'sort' => 'integer', 'is_system' => 'integer', 'user_show' => 'integer', 'created_at' => 'datetime', 'updated_at' => 'datetime', 'created_uid' => 'integer', 'updated_uid' => 'integer', 'option_value' => 'array'];
 
     public static function trimFields(): array
     {
