@@ -8,12 +8,14 @@ declare(strict_types=1);
  * @document https://help.kuaijingai.com
  * @contact  www.kuaijingai.com 7*12 9:00-21:00
  */
+
 namespace Bailing\Office\Excel;
 
 use Bailing\Constants\Code\Common\CommonCode;
 use Bailing\Constants\I18n\Common\CommonI18n;
 use Bailing\Exception\BusinessException;
 use Bailing\Helper\ApiHelper;
+use Bailing\Helper\Intl\I18nHelper;
 use Bailing\Helper\StrHelper;
 use Bailing\Helper\UploadHelper;
 use Bailing\Helper\XlsWriterHelper;
@@ -195,7 +197,7 @@ class XlsWriter extends Excel implements ExcelPropertyInterface
             'center' => Format::FORMAT_ALIGN_CENTER,
             'right' => Format::FORMAT_ALIGN_RIGHT,
         ];
-
+        $userlang = ! empty($infos['operate_uid']) ? I18nHelper::getUserNowLang((int) $infos['operate_uid']) : I18nHelper::getNowLang();
         $columnName = [];
         $columnField = [];
         $columnTip = [];
@@ -329,9 +331,9 @@ class XlsWriter extends Excel implements ExcelPropertyInterface
 
         if (empty($infos['is_export'])) {
             $tipArr = [
-                CommonI18n::TIP->genI18nTxt(returnNowLang: true),
-                '1. ' . CommonI18n::DONT_MODIFY_TABLE_STRUCTURE->genI18nTxt(returnNowLang: true),
-                '2. ' . CommonI18n::RED_FIELDS_REQUIRED->genI18nTxt(returnNowLang: true),
+                CommonI18n::TIP->genI18nTxt(returnNowLang: true, language: $userlang),
+                '1. ' . CommonI18n::DONT_MODIFY_TABLE_STRUCTURE->genI18nTxt(returnNowLang: true, language: $userlang),
+                '2. ' . CommonI18n::RED_FIELDS_REQUIRED->genI18nTxt(returnNowLang: true, language: $userlang),
             ];
             foreach ($columnTip as $item) {
                 $tipArr[] = count($tipArr) . '. ' . $item['value'] . ': ' . $item['tip'];
@@ -385,7 +387,7 @@ class XlsWriter extends Excel implements ExcelPropertyInterface
 
         ob_start();
         if (copy($filePath, 'php://output') === false) {
-            throw new BusinessException(0, CommonCode::EXPORT_FAILED->genI18nMsg(returnNowLang: true));
+            throw new BusinessException(0, CommonCode::EXPORT_FAILED->genI18nMsg(returnNowLang: true, language: $userlang));
         }
         $res = $this->downloadExcel($filename, ob_get_contents());
         ob_end_clean();
