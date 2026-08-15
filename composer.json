@@ -35,7 +35,7 @@
         "hyperf/config-nacos": "^3.1.0",
         "hyperf/constants": "^3.1.0",
         "hyperf/database": "^3.1.0",
-        "hyperf/database-pgsql": "v3.1.55",
+        "hyperf/database-pgsql": "^3.1.55",
         "hyperf/db-connection": "^3.1.0",
         "hyperf/di": "^3.1.0",
         "hyperf/engine": "^1.2|^2.8",
