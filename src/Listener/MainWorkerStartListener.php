@@ -8,29 +8,12 @@ declare(strict_types=1);
  * @document https://help.kuaijingai.com
  * @contact  www.kuaijingai.com 7*12 9:00-21:00
  */
+
 namespace Bailing\Listener;
 
-use Bailing\Helper\Annotation\I18nTranslationReportHelper;
-use Bailing\Helper\Annotation\TranslationReportHelper;
-use Bailing\Helper\Approval\ApprovalProcessHelper;
-use Bailing\Helper\ExtraField\ExtraFieldsHelper;
-use Bailing\Helper\Intl\I18nTranslationHelper;
-use Bailing\Helper\OrgConfigHelper;
-use Bailing\Helper\TranslationHelper;
-use Bailing\Helper\Webhook\WebhookInvokeHelper;
-use Bailing\Helper\XxlJobTaskHelper;
-use GuzzleHttp\Client;
-use GuzzleHttp\Exception\GuzzleException;
-use Hyperf\Amqp\Annotation\Consumer;
-use Hyperf\Amqp\Annotation\Producer;
-use Hyperf\Contract\ApplicationInterface;
-use Hyperf\Di\Annotation\AnnotationCollector;
 use Hyperf\Event\Annotation\Listener;
 use Hyperf\Event\Contract\ListenerInterface;
 use Hyperf\Framework\Event\MainWorkerStart;
-use Swoole\Process;
-use Symfony\Component\Console\Input\ArrayInput;
-use Symfony\Component\Console\Output\ConsoleOutput;
 
 /**
  * Hyperf worker 启动后执行.
@@ -47,85 +30,14 @@ class MainWorkerStartListener implements ListenerInterface
 
     public function process(object $event): void
     {
-        // 初始bailing包的sql语句
-        $input = new ArrayInput(['command' => 'preStart']);
-        $output = new ConsoleOutput();
-        $application = container()->get(ApplicationInterface::class);
-        $application->setAutoExit(false);
-        $exitCode = $application->run($input, $output);
-        stdLog()->info('preStart result：', [$exitCode]);
-
-        // 扫描数据表字段的redis缓存，且删除掉
-        redisDelByPattern('database_table_column_type:*');
-
-        // 检测mq的queue、exchange是否以当前服务名开始，避免复制其他代码导致queue相同，引发问题（system.开头的代表系统级）
-        if (env('AMQP_USER') && env('AMQP_PASSWORD') && env('APP_NAME')) {
-            $consumerExchangeArr = [];
-            // Consumer的queue必须以当前服务名开始
-            $class = AnnotationCollector::getClassesByAnnotation(Consumer::class);
-            if (! empty($class)) {
-                foreach ($class as $item) {
-                    if (! empty($item->queue) && stripos($item->queue, env('APP_NAME')) !== 0) {
-                        stdLog()->error('发现mq消费者的queue不符合规则，必须以服务名（' . env('APP_NAME') . '）开始：' . $item->queue);
-                        Process::kill((int) file_get_contents(\Hyperf\Config\config('server.settings.pid_file')));
-                        break;
-                    }
-                    $consumerExchangeArr[] = $item->exchange;
-                }
-            }
-
-            // Producer的exchange必须要以本服务名开始，特别是当本服务的Consumer存在的时候，避免命令为其他服务。
-            $class = AnnotationCollector::getClassesByAnnotation(Producer::class);
-            if (! empty($class)) {
-                foreach ($class as $item) {
-                    if (! empty($item->exchange) && stripos($item->exchange, env('APP_NAME')) !== 0 && stripos($item->exchange, 'system') !== 0 && in_array($item->exchange, $consumerExchangeArr)) {
-                        stdLog()->error('发现mq投递者的exchange不符合规则，必须以服务名（' . env('APP_NAME') . '）开始：' . $item->exchange);
-                        Process::kill((int) file_get_contents(\Hyperf\Config\config('server.settings.pid_file')));
-                        break;
-                    }
-                }
-            }
-        }
-
-        // 初始化打开 xxl-job
-        stdLog()->info('xxl-job-task init now');
-        if (env('XXL_JOB_ENABLE') === true) {
-            stdLog()->info('xxl-job is enable');
-            $XxlJobTaskHelper = new XxlJobTaskHelper();
-            $XxlJobTaskHelper->build();
-        }
-
-        // 初始化创建 rabbit-mq vhost
-        stdLog()->info('rabbit-mq vhost init now');
-        if (env('AMQP_VHOST_AUTO_CREATE') === true && env('AMQP_PORT_ADMIN')) {
-            $clientHttp = new Client();
-            try {
-                $response = $clientHttp->request('PUT', sprintf('http://%s:%s/api/vhosts/%s', env('AMQP_HOST'), env('AMQP_PORT_ADMIN'), env('AMQP_BALING_VHOST', 'bailing')), [
-                    'auth' => [env('AMQP_USER'), env('AMQP_PASSWORD')],
-                    'content-type' => 'application/json',
-                ]);
-
-                $mqResultCode = $response->getStatusCode();
-                if ($mqResultCode == 201 || $mqResultCode == 204) {
-                    stdLog()->info('rabbit-mq vhost create ok');
-                }
-            } catch (GuzzleException $e) {
-                stdLog()->error('rabbit vhost create error：' . $e->getMessage());
-            }
-        }
-
-        // 国际化上报
-        (new TranslationReportHelper())->build();
-
-        // i18n国际化上报
-        (new I18nTranslationReportHelper())->build();
-
-        // webhook服务注册
-        stdLog()->info('registerServiceWebhook');
-        (new WebhookInvokeHelper())->registerServiceWebhook();
-
-        // webhook服务注册node节点
-        stdLog()->info('registerServiceWebhookNode');
-        (new WebhookInvokeHelper())->registerServiceWebhookNode();
+        // 使用独立命令进程执行启动逻辑，命令结束后即可释放初始化代码及其依赖占用的内存。
+        $command = sprintf(
+            '%s %s %s',
+            escapeshellarg(PHP_BINARY),
+            escapeshellarg(BASE_PATH . '/bin/hyperf.php'),
+            escapeshellarg('preStart')
+        );
+        passthru($command, $exitCode);
+        stdLog()->info('preStart result:', [$exitCode]);
     }
 }
