@@ -14,7 +14,6 @@ namespace Bailing\Command;
 use Bailing\Event\PreStart;
 use Bailing\Helper\Annotation\I18nTranslationReportHelper;
 use Bailing\Helper\Annotation\TranslationReportHelper;
-use Bailing\Helper\Webhook\WebhookInvokeHelper;
 use Bailing\Helper\XxlJobTaskHelper;
 use GuzzleHttp\Client;
 use GuzzleHttp\Exception\GuzzleException;
@@ -33,7 +32,7 @@ class PreStartCommand extends HyperfCommand
 
     private const RUNNING_CACHE_TTL_SECONDS = 900;
 
-    private const COMPLETED_CACHE_TTL_SECONDS = 3;
+    private const COMPLETED_CACHE_TTL_SECONDS = 30;
 
     public function __construct()
     {
@@ -112,8 +111,9 @@ class PreStartCommand extends HyperfCommand
         stdLog()->info('rabbit-mq vhost init now');
         if (env('AMQP_VHOST_AUTO_CREATE') === true && env('AMQP_PORT_ADMIN')) {
             $clientHttp = new Client();
+            $amqpVhost = (string) config('amqp.default.vhost', env('AMQP_BALING_VHOST', env('AMQP_VHOST', 'bailing')));
             try {
-                $response = $clientHttp->request('PUT', sprintf('http://%s:%s/api/vhosts/%s', env('AMQP_HOST'), env('AMQP_PORT_ADMIN'), env('AMQP_BALING_VHOST', 'bailing')), [
+                $response = $clientHttp->request('PUT', sprintf('http://%s:%s/api/vhosts/%s', env('AMQP_HOST'), env('AMQP_PORT_ADMIN'), rawurlencode($amqpVhost)), [
                     'auth' => [env('AMQP_USER'), env('AMQP_PASSWORD')],
                     'content-type' => 'application/json',
                 ]);
@@ -132,14 +132,6 @@ class PreStartCommand extends HyperfCommand
 
         // i18n国际化上报
         (new I18nTranslationReportHelper())->build();
-
-        // webhook服务注册
-        stdLog()->info('registerServiceWebhook');
-        (new WebhookInvokeHelper())->registerServiceWebhook();
-
-        // webhook服务注册node节点
-        stdLog()->info('registerServiceWebhookNode');
-        (new WebhookInvokeHelper())->registerServiceWebhookNode();
 
         // 业务服务可监听该事件执行启动初始化，避免相关代码驻留在主 Worker 进程。
         container()->get(EventDispatcherInterface::class)->dispatch(new PreStart());

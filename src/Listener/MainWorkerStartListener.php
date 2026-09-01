@@ -11,9 +11,12 @@ declare(strict_types=1);
 
 namespace Bailing\Listener;
 
+use Bailing\Helper\Webhook\WebhookInvokeHelper;
 use Hyperf\Event\Annotation\Listener;
 use Hyperf\Event\Contract\ListenerInterface;
 use Hyperf\Framework\Event\MainWorkerStart;
+
+use function Hyperf\Support\retry;
 
 /**
  * Hyperf worker 启动后执行.
@@ -21,6 +24,8 @@ use Hyperf\Framework\Event\MainWorkerStart;
 #[Listener]
 class MainWorkerStartListener implements ListenerInterface
 {
+    private const WEBHOOK_RETRY_BACKOFF_MILLISECONDS = [500, 1000, 2000];
+
     public function listen(): array
     {
         return [
@@ -38,6 +43,39 @@ class MainWorkerStartListener implements ListenerInterface
             escapeshellarg('preStart')
         );
         passthru($command, $exitCode);
-        stdLog()->info('preStart result:', [$exitCode]);
+        stdLog()->info('preStart result:', ['command' => $command, 'exitCode' => $exitCode]);
+
+        // 主 Worker 启动阶段使用 Hyperf AMQP 连接池发送 webhook，避免命令行进程重复建立 RabbitMQ 连接。
+        $webhookInvokeHelper = new WebhookInvokeHelper();
+
+        stdLog()->info('registerServiceWebhook');
+        retry(self::WEBHOOK_RETRY_BACKOFF_MILLISECONDS, static function (int $attempt) use ($webhookInvokeHelper): void {
+            try {
+                $webhookInvokeHelper->registerServiceWebhook();
+            } catch (\Throwable $throwable) {
+                stdLog()->warning('registerServiceWebhook attempt failed', [
+                    'attempt' => $attempt,
+                    'exception' => $throwable::class,
+                    'message' => $throwable->getMessage(),
+                ]);
+                throw $throwable;
+            }
+        });
+        stdLog()->info('registerServiceWebhook completed');
+
+        stdLog()->info('registerServiceWebhookNode');
+        retry(self::WEBHOOK_RETRY_BACKOFF_MILLISECONDS, static function (int $attempt) use ($webhookInvokeHelper): void {
+            try {
+                $webhookInvokeHelper->registerServiceWebhookNode();
+            } catch (\Throwable $throwable) {
+                stdLog()->warning('registerServiceWebhookNode attempt failed', [
+                    'attempt' => $attempt,
+                    'exception' => $throwable::class,
+                    'message' => $throwable->getMessage(),
+                ]);
+                throw $throwable;
+            }
+        });
+        stdLog()->info('registerServiceWebhookNode completed');
     }
 }
