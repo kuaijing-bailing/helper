@@ -44,7 +44,7 @@ class ExtraFieldsController
                 ],
                 [
                     'field' => 'id',
-                    'asc' => false,
+                    'asc' => true,
                 ],
             ];
         }

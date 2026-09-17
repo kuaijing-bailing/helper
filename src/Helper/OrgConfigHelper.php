@@ -148,8 +148,8 @@ class OrgConfigHelper
      * @param string $name 配置名
      * @param int|string $index 唯一索引值，用于细项配置（例如 项目ID_楼宇ID，店铺ID）
      */
-    #[CacheEvict(prefix: 'bailingOrgConfig', value: '_#{orgId}_#{name}_#{index}_')]
-    public static function deleteConfig(int $orgId, string $name, int|string $index = ''): int
+    #[CacheEvict(prefix: 'bailingOrgConfig', value: '_#{orgId}_#{name}_#{index}_#{setOrgServiceData}')]
+    public static function deleteConfig(int $orgId, string $name, int|string $index = '', bool $setOrgServiceData = false): int
     {
         $where = [
             'org_id' => $orgId,
@@ -170,6 +170,6 @@ class OrgConfigHelper
      * @param string $name 配置名
      * @param int|string $index 唯一索引值，用于细项配置（例如 项目ID_楼宇ID，店铺ID）
      */
-    #[CacheEvict(prefix: 'bailingOrgConfig', value: '_#{orgId}_#{name}_#{index}')]
-    public static function clearCache(int $orgId, string $name, int|string $index = ''): void {}
+    #[CacheEvict(prefix: 'bailingOrgConfig', value: '_#{orgId}_#{name}_#{index}_#{setOrgServiceData}')]
+    public static function clearCache(int $orgId, string $name, int|string $index = '', bool $setOrgServiceData = false): void {}
 }

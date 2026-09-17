@@ -51,7 +51,7 @@ class OrgConfigController
         $value = StrHelper::mb_trim(strval(request()->input('value', '')));
         $index = StrHelper::mb_trim(strval(request()->input('index', '')));
 
-        if (empty($orgId) || empty($name) || empty($value)) {
+        if (empty($name) || empty($value)) {
             return ApiHelper::genErrorData('param[org_id, name, value] can not empty');
         }
 
