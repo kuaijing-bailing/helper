@@ -176,4 +176,16 @@ enum CommonCode: int implements EnumCodeInterface
 
     #[EnumCode(msg: '下载失败：保存文件失败', i18nMsg: ['en' => 'Download failed: failed to save file', 'zh_tw' => '下載失敗：保存文件失敗', 'zh_hk' => '下載失敗：保存文件失敗', 'ja' => 'ダウンロードに失敗しました：ファイルの保存に失敗しました'])]
     case HTTP_DOWNLOAD_SAVE_FAILED = 53;
+
+    #[EnumCode(msg: '配置注释格式错误，请检查 JSON 和注释语法', i18nMsg: ['en' => 'Invalid configuration document. Check JSON and comment syntax.', 'zh_tw' => '配置註釋格式錯誤，請檢查 JSON 和註釋語法', 'zh_hk' => '配置註釋格式錯誤，請檢查 JSON 和註釋語法', 'ja' => '設定の JSON とコメントの構文を確認してください'])]
+    case CONFIG_DOCUMENT_INVALID = 54;
+
+    #[EnumCode(msg: '当前服务暂不支持保存配置注释，请更新配置组件并执行迁移', i18nMsg: ['en' => 'Configuration comments are unavailable. Update the configuration package and run its migration.', 'zh_tw' => '當前服務暫不支援儲存配置註釋，請更新配置組件並執行遷移', 'zh_hk' => '當前服務暫不支援儲存配置註釋，請更新配置組件並執行遷移', 'ja' => '設定パッケージを更新し、マイグレーションを実行してください'])]
+    case CONFIG_COMMENTS_UNAVAILABLE = 55;
+
+    #[EnumCode(msg: '配置值与注释原文不一致，请重新读取后保存', i18nMsg: ['en' => 'The configuration value does not match its document. Read the value again before saving.', 'zh_tw' => '配置值與註釋原文不一致，請重新讀取後儲存', 'zh_hk' => '配置值與註釋原文不一致，請重新讀取後儲存', 'ja' => '設定値とコメント付き原文が一致しません。値を再読み込みしてください'])]
+    case CONFIG_DOCUMENT_MISMATCH = 56;
+
+    #[EnumCode(msg: '配置表尚未支持系统后台来源标记，请更新配置组件并执行迁移', i18nMsg: ['en' => 'System configuration tracking is unavailable. Update the configuration package and run its migration.', 'zh_tw' => '配置表尚未支援系統後台來源標記，請更新配置組件並執行遷移', 'zh_hk' => '配置表尚未支援系統後台來源標記，請更新配置組件並執行遷移', 'ja' => '設定パッケージを更新し、マイグレーションを実行してください'])]
+    case CONFIG_SYSTEM_SOURCE_UNAVAILABLE = 57;
 }
