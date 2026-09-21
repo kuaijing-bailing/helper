@@ -43,4 +43,19 @@ interface SmsServiceInterface
      * 图形验证码校验.
      */
     public function checkVerifyCode(string $token, string $input): array;
+
+    /**
+     * 校验并消费滑块验证码已验证令牌
+     * 一次性消费：校验通过后立即删除，防止同一令牌在有效期内被重放
+     */
+    public function checkCaptchaVerifiedToken(string $verifiedToken): array;
+
+    /**
+     * 解析当前请求实际生效的验证码类型，并判断是否因客户端版本发生降级
+     *
+     * @param string $curEnv 请求来源端口，如 wechatMiniApp、app、web
+     * @param string $appVersion 客户端版本号，Web 端为空字符串
+     * @return array 返回格式：['code' => int, 'data' => ['captcha_type' => int, 'need_version_compatible' => bool]]
+     */
+    public function resolveCaptchaType(string $curEnv, string $appVersion): array;
 }

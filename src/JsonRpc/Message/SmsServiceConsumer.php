@@ -69,4 +69,35 @@ class SmsServiceConsumer extends AbstractServiceClient implements SmsServiceInte
             return ApiHelper::genServiceErrorData($this->serviceName, $exception);
         }
     }
+
+    /**
+     * 校验并消费滑块验证码已验证令牌
+     *
+     * @param string $verifiedToken 已验证令牌
+     * @return array
+     */
+    public function checkCaptchaVerifiedToken(string $verifiedToken): array
+    {
+        try {
+            return $this->__request(__FUNCTION__, compact('verifiedToken'));
+        } catch (\Exception $exception) {
+            return ApiHelper::genServiceErrorData($this->serviceName, $exception);
+        }
+    }
+
+    /**
+     * 解析当前请求实际生效的验证码类型，并判断是否因客户端版本发生降级
+     *
+     * @param string $curEnv 请求来源端口
+     * @param string $appVersion 客户端版本号
+     * @return array
+     */
+    public function resolveCaptchaType(string $curEnv, string $appVersion): array
+    {
+        try {
+            return $this->__request(__FUNCTION__, compact('curEnv', 'appVersion'));
+        } catch (\Exception $exception) {
+            return ApiHelper::genServiceErrorData($this->serviceName, $exception);
+        }
+    }
 }
