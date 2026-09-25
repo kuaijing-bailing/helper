@@ -8,12 +8,13 @@ declare(strict_types=1);
  * @document https://help.kuaijingai.com
  * @contact  www.kuaijingai.com 7*12 9:00-21:00
  */
+
 namespace Bailing\Controller;
 
 use Bailing\Annotation\RateRequest;
 use Bailing\Constants\Code\Common\CommonCode;
-use Bailing\Helper\ApiHelper;
 use Bailing\Helper\AesHelper;
+use Bailing\Helper\ApiHelper;
 use Bailing\Middleware\OrgMiddleware;
 use Bailing\Model\BailingExtraFields;
 use Hyperf\Database\Model\Builder;
@@ -122,20 +123,15 @@ class ExtraFieldsController
         return ApiHelper::genSuccessData(['id' => $detail->id], CommonCode::OPERATION_SUCCESS);
     }
 
+    /**
+     * 新增或编辑拓展字段，名称仅在同机构、同功能分类内校验重复。
+     * @param null|int $id 路由中的字段 ID，零或空表示新增
+     * @return array 保存结果或字段不存在、名称重复等业务错误
+     */
     private function editHandle(?int $id = 0): array
     {
         $post = request()->all();
         $nowAdmin = contextGet('nowUser');
-
-        $isExist = BailingExtraFields::query()->where('org_id', $nowAdmin->org_id)
-            ->where('fields_name', $post['fields_name'])
-            ->when(! empty($id), function (Builder $query) use ($id) {
-                $query->where('id', '!=', $id);
-            })
-            ->exists();
-        if ($isExist) {
-            return ApiHelper::genErrorData(CommonCode::NAME_REPEAT);
-        }
 
         if (! empty($id)) {
             $model = BailingExtraFields::query()->where(['id' => $id, 'org_id' => $nowAdmin->org_id])->first();
@@ -151,6 +147,21 @@ class ExtraFieldsController
             $model->created_uid = (int) $nowAdmin->id;
             $model->created_name = (string) $nowAdmin->name;
         }
+        // 房屋类型等功能通过 alias 隔离，同名字段不能跨分类相互阻止保存。
+        // 列表开关仅提交局部参数，未传的名称和分类沿用原记录。
+        $alias = (string) ($post['alias'] ?? $model->alias ?? '');
+        $fieldsName = (string) ($post['fields_name'] ?? $model->fields_name ?? '');
+        $isExist = BailingExtraFields::query()->where('org_id', $nowAdmin->org_id)
+            ->where('alias', $alias)
+            ->where('fields_name', $fieldsName)
+            ->when(! empty($id), function (Builder $query) use ($id) {
+                $query->where('id', '!=', $id);
+            })
+            ->exists();
+        if ($isExist) {
+            return ApiHelper::genErrorData(CommonCode::NAME_REPEAT);
+        }
+
         isset($post['alias']) && $model->alias = (string) $post['alias'];
         isset($post['fields_name']) && $model->fields_name = (string) $post['fields_name'];
         isset($post['fields_type']) && $model->fields_type = (string) $post['fields_type'];
