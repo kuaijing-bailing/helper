@@ -38,6 +38,16 @@ interface ThirdServiceInterface
     public function pushWechatToSingleByUid(int $orgId, int $userId, array $pushData, string $url): array;
 
     /**
+     * 发送微信小程序账单订阅消息，机构及用户身份独立于服务号校验。
+     * @param int $orgId 账单所属机构 ID
+     * @param int $userId 与站内信一致的接收用户 ID
+     * @param array $pushData 与服务号一致的平铺参数：matter、tmpl_id 和中文业务字段；third 内部生成去重键并转换微信字段
+     * @param string $link 与站内信一致的原始业务别名链接，包含账单 ID 及机构 ID
+     * @return array 仅微信确认发送成功时返回成功；data 包含投递状态和记录 ID，不含用户 openid
+     */
+    public function pushWxappToSingleByUid(int $orgId, int $userId, array $pushData, string $link): array;
+
+    /**
      * 获取企业微信信息.
      */
     public function getWorkWechatByOrgId(int $orgId): array;
@@ -71,5 +81,5 @@ interface ThirdServiceInterface
      */
     public function getWechatAccessToken(string $appid): array;
 
-	public function getFeishuInfoByOrgId(int $orgId): array;
+    public function getFeishuInfoByOrgId(int $orgId): array;
 }
