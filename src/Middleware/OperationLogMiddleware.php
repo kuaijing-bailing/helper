@@ -8,6 +8,7 @@ declare(strict_types=1);
  * @document https://help.kuaijingai.com
  * @contact  www.kuaijingai.com 7*12 9:00-21:00
  */
+
 namespace Bailing\Middleware;
 
 use Bailing\Amqp\Producer\OperationLogProducer;
@@ -49,6 +50,9 @@ class OperationLogMiddleware implements MiddlewareInterface
         $this->request = $request;
     }
 
+    /**
+     * 采集当前操作请求及客户端信息，并异步发送操作日志。
+     */
     public function process(ServerRequestInterface $request, RequestHandlerInterface $handler): ResponseInterface
     {
         $result = $handler->handle($request);
@@ -66,6 +70,8 @@ class OperationLogMiddleware implements MiddlewareInterface
             'router' => $request->getServerParams()['path_info'],
             'protocol' => $request->getServerParams()['server_protocol'],
             'ip' => $ip,
+            // 在创建异步协程前读取原始请求，避免请求上下文切换后丢失客户端信息。
+            'user_agent' => $request->getHeaderLine('User-Agent'),
             'service_name' => config('app_name'),
             'request_data' => $this->request->all(),
             'response_code' => $result->getStatusCode(),
@@ -85,14 +91,14 @@ class OperationLogMiddleware implements MiddlewareInterface
             $keyLabel = 'DATAV';
         }
 
-        //获取用户登录信息.
+        // 获取用户登录信息.
         $user_data = $this->getUserData($keyLabel);
         if ($user_data) {
             $operationLog['user_data'] = $user_data;
             if ($keyLabel == 'ORG') {
                 $operationLog['org_id'] = $user_data['org_id'] ?: 0;
             }
-        } else if ($operationLog['service_name'] != 'user' || ! in_array($operationLog['router'], ['/login/reg', '/login/pwd', '/login/afterThird', '/changePassword'])) {
+        } elseif ($operationLog['service_name'] != 'user' || ! in_array($operationLog['router'], ['/login/reg', '/login/pwd', '/login/afterThird', '/changePassword'])) {
             // user服务的登录接口，需要保存日志
             return $result;
         }
@@ -124,7 +130,7 @@ class OperationLogMiddleware implements MiddlewareInterface
                 $producer = container()->get(Producer::class);
                 $proResult = $producer->produce($message);
                 stdLog()->debug('OperationLogProducer produce result', [$proResult]);
-            } catch (NotFoundExceptionInterface|ContainerExceptionInterface|\Exception $e) {
+            } catch (ContainerExceptionInterface|\Exception|NotFoundExceptionInterface $e) {
                 stdLog()->warning('OperationLogProducer produce error', [$e->getMessage()]);
             }
         });
@@ -138,13 +144,13 @@ class OperationLogMiddleware implements MiddlewareInterface
      */
     public function getUserData($keyLabel): array
     {
-        //系统后台用户信息  {"id":1,"name":"admin","phone_country":null,"phone":"12345678910","last_time":"2023-01-11 10:46:12","last_ip":"127.0.0.1","role_id":null,"level":99,"account":"admin"}
-        //机构后台用户信息  {"id":1,"phone_country":86,"phone":"12345678910","last_time":"2023-01-13 17:44:48","last_ip":"127.0.0.1","user_id":1,"name":"张三","org_id":1,"org_name":"啊屋","role_id":0,"level":99,"isSuper":true,"isLayerAdmin":false}
-        //移动端用户信息   {"id":1,"phone_country":86,"phone":"12345678910","last_time":"2023-01-31 11:39:58","last_ip":"127.0.0.1","sharer":[]}
+        // 系统后台用户信息  {"id":1,"name":"admin","phone_country":null,"phone":"12345678910","last_time":"2023-01-11 10:46:12","last_ip":"127.0.0.1","role_id":null,"level":99,"account":"admin"}
+        // 机构后台用户信息  {"id":1,"phone_country":86,"phone":"12345678910","last_time":"2023-01-13 17:44:48","last_ip":"127.0.0.1","user_id":1,"name":"张三","org_id":1,"org_name":"啊屋","role_id":0,"level":99,"isSuper":true,"isLayerAdmin":false}
+        // 移动端用户信息   {"id":1,"phone_country":86,"phone":"12345678910","last_time":"2023-01-31 11:39:58","last_ip":"127.0.0.1","sharer":[]}
         $userData = [];
         if (! empty($keyLabel)) {
             $jwtData = JwtHelper::userData($keyLabel);
-            //stdLog()->info('用户登录信息', [$keyLabel, $jwtData]);
+            // stdLog()->info('用户登录信息', [$keyLabel, $jwtData]);
             if ($jwtData) {
                 $userData = [
                     'id' => $jwtData->id,
