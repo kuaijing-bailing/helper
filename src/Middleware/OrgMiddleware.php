@@ -12,6 +12,7 @@ declare(strict_types=1);
 namespace Bailing\Middleware;
 
 use App\JsonRpc\OrgService;
+use Bailing\Annotation\AllowUnboundOrg;
 use Bailing\Annotation\EnumCodeInterface;
 use Bailing\Constants\Code\Common\CommonCode;
 use Bailing\Helper\ApiHelper;
@@ -56,7 +57,7 @@ class OrgMiddleware implements MiddlewareInterface
     public function process(ServerRequestInterface $request, RequestHandlerInterface $handler): ResponseInterface
     {
         $classMethod = explode(':', RequestHelper::getAdminModule());
-        $annotations = AnnotationCollector::getClassMethodAnnotation($classMethod[0], $classMethod[1]);
+        $annotations = AnnotationCollector::getClassMethodAnnotation($classMethod[0], $classMethod[1]) ?? [];
         $jwtData = JwtHelper::decodeWithRequest('ORG', $request);
         $annotationsArr = (array) $annotations;
         if (! $jwtData && isset($annotationsArr['Hyperf\HttpServer\Annotation\Middleware']) && $annotationsMiddleware = (array) $annotationsArr['Hyperf\HttpServer\Annotation\Middleware']) {
@@ -83,7 +84,30 @@ class OrgMiddleware implements MiddlewareInterface
             return self::json(CommonCode::VISIT_NEED_INTRANET->genI18nMsg(['ip' => RequestHelper::getClientIp()]));
         }
 
+        if (! isset($jwtData->data) || ! is_object($jwtData->data) || ! self::isPositiveId($jwtData->data->id ?? null)) {
+            return self::json(CommonCode::NEED_LOGIN);
+        }
+
         $jwtData->data->tokenType = 'org';
+        $scope = $jwtData->data->scope ?? '';
+        $hasOrgIdentity = self::isPositiveId($jwtData->data->org_id ?? null)
+            && self::isPositiveId($jwtData->data->user_id ?? null);
+        // 必须先校验机构身份，再处理超级管理员和免菜单权限接口，旧的 org_id=0 令牌也受此限制。
+        if (! $hasOrgIdentity || $scope !== '') {
+            if (! isset($annotations[AllowUnboundOrg::class])
+                || ! in_array($scope, ['', JwtHelper::ORG_ONBOARDING_SCOPE], true)) {
+                return self::json(CommonCode::AUTH_ERROR, ApiHelper::AUTH_ERROR);
+            }
+            // 入驻上下文不能携带历史令牌中的角色或超级管理员身份。
+            $jwtData->data->org_id = 0;
+            $jwtData->data->user_id = 0;
+            $jwtData->data->role_id = [];
+            $jwtData->data->level = 0;
+            $jwtData->data->isSuper = false;
+            $jwtData->data->isLayerAdmin = false;
+            contextSet('nowUser', $jwtData->data);
+            return $handler->handle($request);
+        }
 
         if (isset($jwtData->data->level) && $jwtData->data->level == self::SUPER_ROLE_LEVEL) { // 机构创建者=超级管理员 拥有最高访问权限
             contextSet('nowUser', $jwtData->data); // 将登录信息存储到协程上下文
@@ -128,6 +152,15 @@ class OrgMiddleware implements MiddlewareInterface
         contextSet('nowUser', $jwtData->data); // 将登录信息存储到协程上下文
         unset($jwtData, $adminRole);
         return $handler->handle($request);
+    }
+
+    /**
+     * 身份主键必须是正整数，拒绝缺失值、布尔值和非数字载荷。
+     */
+    private static function isPositiveId(mixed $id): bool
+    {
+        return (is_int($id) || is_string($id))
+            && filter_var($id, FILTER_VALIDATE_INT, ['options' => ['min_range' => 1]]) !== false;
     }
 
     private static function json(array|EnumCodeInterface|string $msg, int $errCode = ApiHelper::LOGIN_ERROR)
