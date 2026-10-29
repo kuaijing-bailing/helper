@@ -33,18 +33,9 @@ class MainWorkerStartListener implements ListenerInterface
         ];
     }
 
+    /** 迁移已在主服务启动前完成，此处仅注册依赖 Worker 连接池的 webhook。 */
     public function process(object $event): void
     {
-        // 使用独立命令进程执行启动逻辑，命令结束后即可释放初始化代码及其依赖占用的内存。
-        $command = sprintf(
-            '%s %s %s',
-            escapeshellarg(PHP_BINARY),
-            escapeshellarg(BASE_PATH . '/bin/hyperf.php'),
-            escapeshellarg('preStart')
-        );
-        passthru($command, $exitCode);
-        stdLog()->info('preStart result:', ['command' => $command, 'exitCode' => $exitCode]);
-
         // 主 Worker 启动阶段使用 Hyperf AMQP 连接池发送 webhook，避免命令行进程重复建立 RabbitMQ 连接。
         $webhookInvokeHelper = new WebhookInvokeHelper();
 
