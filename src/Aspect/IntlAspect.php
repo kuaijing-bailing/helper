@@ -8,6 +8,7 @@ declare(strict_types=1);
  * @document https://help.kuaijingai.com
  * @contact  www.kuaijingai.com 7*12 9:00-21:00
  */
+
 namespace Bailing\Aspect;
 
 use Bailing\Helper\Intl\DateTimeHelper;
@@ -30,6 +31,11 @@ class IntlAspect extends AbstractAspect
     // 要切入的注解，具体切入的还是使用了这些注解的类，仅可切入类注解和类方法注解
     public array $annotations = [];
 
+    /**
+     * 按配置补齐数值、币种和日期展示，在本次处理内复用同一模型未被回填的源字段。
+     *
+     * @return mixed 保留原模型及其国际化字段；空结果原样返回
+     */
     public function process(ProceedingJoinPoint $proceedingJoinPoint)
     {
         $result = $proceedingJoinPoint->process();
@@ -43,6 +49,16 @@ class IntlAspect extends AbstractAspect
         }
 
         $tableName = $result->offsetGet(0)->getTable();
+
+        // isset/empty 与随后取值都会触发访问器；在本次切面执行内复用已读结果，包括 null 和零值。
+        $fieldValues = [];
+        $readField = static function (Model $model, string $field) use (&$fieldValues): mixed {
+            $modelId = spl_object_id($model);
+            if (! array_key_exists($field, $fieldValues[$modelId] ?? [])) {
+                $fieldValues[$modelId][$field] = $model->getAttribute($field);
+            }
+            return $fieldValues[$modelId][$field];
+        };
 
         // 得到需要数字文字展示的配置项
         $tableCurrencyConfig = config('translation.number.' . $tableName);
@@ -59,9 +75,11 @@ class IntlAspect extends AbstractAspect
                             $tmpField = $key;
                         }
 
-                        if (isset($model->{$tmpField})) {
+                        $value = $readField($model, $tmpField);
+                        if ($value !== null) {
                             $tmpNewField = 'i18n_' . $tmpField;
-                            $model->{$tmpNewField} = NumberFormatHelper::getFormatNumberArray(number: $model->{$tmpField}, decimals: $tmpDecimals);
+                            $model->{$tmpNewField} = NumberFormatHelper::getFormatNumberArray(number: $value, decimals: $tmpDecimals);
+                            unset($fieldValues[spl_object_id($model)][$tmpNewField]);
                         }
                     }
                 }
@@ -86,9 +104,11 @@ class IntlAspect extends AbstractAspect
                         }
 
                         $tmpNewField = 'i18n_' . $tmpField;
-                        if (isset($model->{$tmpField})) {
-                            $tmpNumber = (float) getFormatNumber($model->{$tmpField}, $tmpDecimals);
-                            $model->{$tmpNewField} = NumberFormatHelper::getFormatCurrencyArray($tmpNumber, $model->{$tmpCodeField} ?? '');
+                        $value = $readField($model, $tmpField);
+                        if ($value !== null) {
+                            $tmpNumber = (float) getFormatNumber($value, $tmpDecimals);
+                            $model->{$tmpNewField} = NumberFormatHelper::getFormatCurrencyArray($tmpNumber, $readField($model, $tmpCodeField) ?? '');
+                            unset($fieldValues[spl_object_id($model)][$tmpNewField]);
                         }
                     }
                 }
@@ -113,18 +133,24 @@ class IntlAspect extends AbstractAspect
                         // 二维数组
                         if (str_contains($tmpField, '.')) {
                             $tmpFieldArr = explode('.', $tmpField);
-                            if (! empty($model->{$tmpFieldArr[0]}[$tmpFieldArr[1]])) {
-                                $tmpValue = $model->{$tmpFieldArr[0]}[$tmpFieldArr[1]];
+                            $parentValue = $readField($model, $tmpFieldArr[0]);
+                            if (! empty($parentValue[$tmpFieldArr[1]])) {
+                                $tmpValue = $parentValue[$tmpFieldArr[1]];
                                 $tmpNewField = 'i18n_' . $tmpFieldArr[1];
                                 // 兼容Carbon对象
                                 if ($tmpValue instanceof Carbon) {
-                                    $model->{$tmpFieldArr[0]} = array_merge($model->{$tmpFieldArr[0]}, [$tmpNewField => DateTimeHelper::getDateTimeByUnixTimestamp($tmpValue->getTimestamp(), $tmpFormat)]);
+                                    $model->{$tmpFieldArr[0]} = array_merge($parentValue, [$tmpNewField => DateTimeHelper::getDateTimeByUnixTimestamp($tmpValue->getTimestamp(), $tmpFormat)]);
                                 } else {
-                                    $model->{$tmpFieldArr[0]} = array_merge($model->{$tmpFieldArr[0]}, [$tmpNewField => DateTimeHelper::getDateTimeByUnixTimestamp(DateTimeHelper::strtotime($tmpValue), $tmpFormat)]);
+                                    $model->{$tmpFieldArr[0]} = array_merge($parentValue, [$tmpNewField => DateTimeHelper::getDateTimeByUnixTimestamp(DateTimeHelper::strtotime($tmpValue), $tmpFormat)]);
                                 }
+                                // 回填嵌套数组后使该字段失效，下一项读取写入访问器处理后的值，保留同一数组内其他日期。
+                                unset($fieldValues[spl_object_id($model)][$tmpFieldArr[0]]);
                             }
-                        } elseif (! empty($model->{$tmpField})) {
-                            $tmpValue = $model->{$tmpField};
+                        } else {
+                            $tmpValue = $readField($model, $tmpField);
+                            if (empty($tmpValue)) {
+                                continue;
+                            }
                             $tmpNewField = 'i18n_' . $tmpField;
                             // 兼容Carbon对象
                             if ($tmpValue instanceof Carbon) {
@@ -132,6 +158,7 @@ class IntlAspect extends AbstractAspect
                             } else {
                                 $model->{$tmpNewField} = DateTimeHelper::getDateTimeByUnixTimestamp(DateTimeHelper::strtotime($tmpValue), $tmpFormat);
                             }
+                            unset($fieldValues[spl_object_id($model)][$tmpNewField]);
                         }
                     }
                 }

@@ -96,15 +96,22 @@ trait EnumCodeGet
     }
 
     /**
-     * 获取i18n的组装内容，用于返回.
+     * 获取多语言提示；指定用户时直接返回该用户语言的单一字符串。
+     * @param int $uid 目标用户编号，0 沿用请求语言；正数通过一分钟缓存查询用户语言
+     * @param string $language 显式语言标签，非空时优先于用户语言
      * @param array $i18nParam i18n参数
      */
-    public function genI18nMsg(array $i18nParam = [], bool $returnNowLang = false, string $language = ''): array|string
+    public function genI18nMsg(array $i18nParam = [], bool $returnNowLang = false, string $language = '', int $uid = 0): array|string
     {
         $msgArr = self::getEnums()[$this->name];
 
-        // 返回当前语言的字符串，一般用于服务间的错误.
-        if ($returnNowLang) {
+        // 显式语言优先；指定用户时在提示生成处查语言，不依赖审批人或队列上下文。
+        if ($returnNowLang || $uid > 0) {
+            if ($language === '' && $uid > 0) {
+                $userLanguage = I18nHelper::getUserNowLang($uid);
+                $languageList = (array) cfg('lang_list');
+                $language = (string) ($languageList[$userLanguage] ?? $userLanguage);
+            }
             $nowLang = I18nHelper::getNowLang($language);
             $msg = $msgArr['i18nMsg'][$nowLang] ?? $msgArr['msg'];
             foreach ($i18nParam as $key => $value) {

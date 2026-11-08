@@ -22,13 +22,17 @@ use Hyperf\Amqp\Annotation\Producer;
 use Hyperf\Command\Annotation\Command;
 use Hyperf\Command\Command as HyperfCommand;
 use Hyperf\Coordinator\Constants;
+use Hyperf\Coordinator\Coordinator;
 use Hyperf\Coordinator\CoordinatorManager;
+use Hyperf\Coroutine\Coroutine;
 use Hyperf\Database\Migrations\Migrator;
 use Hyperf\Di\Annotation\AnnotationCollector;
 use Hyperf\Di\Annotation\Inject;
+use Hyperf\Redis\Redis;
 use Psr\EventDispatcher\EventDispatcherInterface;
 use Swoole\Process;
 use Symfony\Component\Console\Input\InputOption;
+use Symfony\Component\Process\Exception\ProcessFailedException;
 use Symfony\Component\Process\Process as ConsoleProcess;
 
 /**
@@ -42,8 +46,14 @@ class PreStartCommand extends HyperfCommand
     /** 服务级启动锁及短时成功缓存的键前缀。 */
     private const CACHE_KEY_PREFIX = 'service_auto:pre_start_command:';
 
-    /** 保留原有运行锁过期时间，单位秒，不额外引入续租协程。 */
-    private const RUNNING_CACHE_TTL_SECONDS = 900;
+    /** 运行锁租期，单位秒，容器异常退出后由 Redis 自动释放。 */
+    private const RUNNING_CACHE_TTL_SECONDS = 30;
+
+    /** 持锁期间的续租间隔，单位秒。 */
+    private const LOCK_RENEW_INTERVAL_SECONDS = 5;
+
+    /** 等待其他实例完成或遗留锁过期时的重试间隔，单位秒。 */
+    private const LOCK_RETRY_INTERVAL_SECONDS = 1;
 
     /** 成功缓存保留时间，单位秒，避免入口脚本与启动监听重复初始化。 */
     private const COMPLETED_CACHE_TTL_SECONDS = 30;
@@ -51,6 +61,9 @@ class PreStartCommand extends HyperfCommand
     /** 查询待执行迁移及完成记录，父进程不直接执行迁移。 */
     #[Inject]
     protected Migrator $migrator;
+
+    /** 后台续租失败的原因，交回命令所在协程以阻止后续任务。 */
+    private ?\Throwable $renewalFailure = null;
 
     /** 注册预启动命令。 */
     public function __construct()
@@ -72,30 +85,25 @@ class PreStartCommand extends HyperfCommand
             $redis = redis();
             $cacheKey = self::CACHE_KEY_PREFIX . strval(env('MICRO_NAME', env('APP_NAME')));
             $token = bin2hex(random_bytes(16));
-            // 强制检查只绕过成功缓存，不能把另一进程仍在执行误判为初始化完成。
-            $state = $redis->eval(
-                "local value = redis.call('get', KEYS[1]); if not value or (value == 'completed' and ARGV[3] == '1') then redis.call('set', KEYS[1], ARGV[1], 'EX', ARGV[2]); return 1; end; if value == 'completed' then return 2; end; return 0;",
-                [$cacheKey, $token, self::RUNNING_CACHE_TTL_SECONDS, $this->input->getOption('force') ? '1' : '0'],
-                1
-            );
-            if ($state === 2) {
-                $this->info('preStart skipped because a recent execution completed successfully.');
+            if (! $this->acquireStartupLock($redis, $cacheKey, $token)) {
                 return;
             }
-            if ($state !== 1) {
-                throw new \RuntimeException('preStart is already running; startup must wait and retry.');
-            }
+            $finished = new Coordinator();
             try {
+                $this->renewalFailure = null;
+                $this->startLockRenewal($redis, $cacheKey, $token, $finished);
                 $this->runPreStartTasks();
-                // 耗时超过原有 TTL 且无人接管时允许完成；不得覆盖另一进程持有的锁。
+                $this->checkLockRenewal();
+                // 只有仍持锁的进程能发布成功状态，过期或已被接管时必须重试。
                 if ($redis->eval(
-                    "local value = redis.call('get', KEYS[1]); if not value or value == ARGV[1] then redis.call('set', KEYS[1], 'completed', 'EX', ARGV[2]); return 1; end; return 0;",
+                    "if redis.call('get', KEYS[1]) == ARGV[1] then redis.call('set', KEYS[1], 'completed', 'EX', ARGV[2]); return 1; end; return 0;",
                     [$cacheKey, $token, self::COMPLETED_CACHE_TTL_SECONDS],
                     1
                 ) !== 1) {
                     throw new \RuntimeException('preStart lost ownership of its startup lock.');
                 }
             } finally {
+                $finished->resume();
                 // 失败释放本次锁以便重试，成功缓存及其他进程的锁不受影响。
                 $redis->eval("if redis.call('get', KEYS[1]) == ARGV[1] then return redis.call('del', KEYS[1]); end; return 0;", [$cacheKey, $token], 1);
             }
@@ -121,15 +129,11 @@ class PreStartCommand extends HyperfCommand
                 if (isset($ran[$name])) {
                     continue;
                 }
+                $this->checkLockRenewal();
                 $process = $this->createMigrationProcess([
                     'migrate:isolated', '--database=default', '--path=' . $file, '--batch=' . $batch, '--realpath', '--force', '--no-interaction',
                 ]);
-                $process->mustRun(static function (string $type, string $buffer) use ($process): void {
-                    fwrite($type === ConsoleProcess::ERR ? STDERR : STDOUT, $buffer);
-                    // 输出已透传，避免长时间迁移在父进程重复积累日志。
-                    $process->clearOutput();
-                    $process->clearErrorOutput();
-                });
+                $this->waitForMigration($process);
                 $ran = array_fill_keys($repository->getRan(), true);
                 if (! isset($ran[$name])) {
                     throw new \RuntimeException(sprintf('Migration [%s] exited without recording completion.', $name));
@@ -151,6 +155,7 @@ class PreStartCommand extends HyperfCommand
     protected function runPreStartTasks(): void
     {
         $this->runMigrations(dirname(__DIR__) . '/migrations', BASE_PATH . '/migrations');
+        $this->checkLockRenewal();
 
         // 扫描数据表字段的redis缓存，且删除掉
         redisDelByPattern('database_table_column_type:*');
@@ -185,6 +190,7 @@ class PreStartCommand extends HyperfCommand
         }
 
         // 初始化打开 xxl-job
+        $this->checkLockRenewal();
         stdLog()->info('xxl-job-task init now');
         if (env('XXL_JOB_ENABLE') === true) {
             stdLog()->info('xxl-job is enable');
@@ -193,6 +199,7 @@ class PreStartCommand extends HyperfCommand
         }
 
         // 初始化创建 rabbit-mq vhost
+        $this->checkLockRenewal();
         stdLog()->info('rabbit-mq vhost init now');
         if (env('AMQP_VHOST_AUTO_CREATE') === true && env('AMQP_PORT_ADMIN')) {
             $clientHttp = new Client();
@@ -213,12 +220,106 @@ class PreStartCommand extends HyperfCommand
         }
 
         // 国际化上报
+        $this->checkLockRenewal();
         (new TranslationReportHelper())->build();
 
         // i18n国际化上报
+        $this->checkLockRenewal();
         (new I18nTranslationReportHelper())->build();
 
         // 业务服务可监听该事件执行启动初始化，避免相关代码驻留在主 Worker 进程。
+        $this->checkLockRenewal();
         container()->get(EventDispatcherInterface::class)->dispatch(new PreStart());
+    }
+
+    /**
+     * 等待服务级锁释放或过期后原子获取，即使强制执行也要等待当前持有者。
+     * @return bool 已取得锁时返回 true，命中成功缓存时返回 false
+     */
+    private function acquireStartupLock(Redis $redis, string $cacheKey, string $token): bool
+    {
+        $arguments = [$cacheKey, $token, self::RUNNING_CACHE_TTL_SECONDS, $this->input->getOption('force') ? '1' : '0'];
+        $waiting = false;
+        while (true) {
+            $state = $redis->eval(<<<'LUA'
+                local value = redis.call('get', KEYS[1])
+                if not value or (value == 'completed' and ARGV[3] == '1') then
+                    redis.call('set', KEYS[1], ARGV[1], 'EX', ARGV[2])
+                    return 1
+                end
+                if value == 'completed' then return 2 end
+                return 0
+                LUA, $arguments, 1);
+            if ($state === 1) {
+                return true;
+            }
+            if ($state === 2) {
+                $this->info('preStart skipped because a recent execution completed successfully.');
+                return false;
+            }
+            if ($state !== 0) {
+                throw new \RuntimeException('Unable to acquire the preStart lock in Redis.');
+            }
+            if (! $waiting) {
+                $this->info('Waiting for the existing preStart lock to be released or expire.');
+                $waiting = true;
+            }
+            Coroutine::sleep(self::LOCK_RETRY_INTERVAL_SECONDS);
+        }
+    }
+
+    /** 透传迁移输出，空闲时让出执行权以便续租；失锁时终止子进程。 */
+    private function waitForMigration(ConsoleProcess $process): void
+    {
+        $process->start();
+        try {
+            foreach ($process->getIterator(ConsoleProcess::ITER_NON_BLOCKING) as $type => $buffer) {
+                $this->checkLockRenewal();
+                if ($buffer === '') {
+                    Coroutine::sleep(0.1);
+                } else {
+                    fwrite($type === ConsoleProcess::ERR ? STDERR : STDOUT, $buffer);
+                }
+            }
+            $this->checkLockRenewal();
+            if (! $process->isSuccessful()) {
+                throw new ProcessFailedException($process);
+            }
+        } finally {
+            if ($process->isRunning()) {
+                $process->stop(0);
+            }
+        }
+    }
+
+    /** 在任务运行期间仅为本次令牌续租，将错误交给正在运行任务的协程。 */
+    private function startLockRenewal(Redis $redis, string $cacheKey, string $token, Coordinator $finished): void
+    {
+        $id = Coroutine::create(function () use ($redis, $cacheKey, $token, $finished): void {
+            try {
+                while (! $finished->yield(self::LOCK_RENEW_INTERVAL_SECONDS)) {
+                    if ($redis->eval(
+                        "if redis.call('get', KEYS[1]) == ARGV[1] then return redis.call('expire', KEYS[1], ARGV[2]); end; return 0;",
+                        [$cacheKey, $token, self::RUNNING_CACHE_TTL_SECONDS],
+                        1
+                    ) !== 1) {
+                        throw new \RuntimeException('preStart could not renew its startup lock.');
+                    }
+                }
+            } catch (\Throwable $exception) {
+                $this->renewalFailure = $exception;
+            }
+        });
+        if ($id < 1) {
+            throw new \RuntimeException('Could not start the preStart lock renewal coroutine.');
+        }
+    }
+
+    /** 将续租协程的异常抛回执行任务的协程。 */
+    private function checkLockRenewal(): void
+    {
+        if ($this->renewalFailure !== null) {
+            throw $this->renewalFailure;
+        }
     }
 }
