@@ -31,14 +31,17 @@ use Hyperf\Di\Annotation\Inject;
 use Hyperf\Redis\Redis;
 use Psr\EventDispatcher\EventDispatcherInterface;
 use Swoole\Process;
+use Symfony\Component\Console\Input\InputInterface;
 use Symfony\Component\Console\Input\InputOption;
+use Symfony\Component\Console\Output\OutputInterface;
 use Symfony\Component\Process\Exception\ProcessFailedException;
 use Symfony\Component\Process\Process as ConsoleProcess;
 
 /**
  * 执行启动前迁移及初始化；迁移按文件隔离，失败后禁止启动。
- * 在业务服务根目录执行：php bin/hyperf.php preStart --no-interaction。
- * 更新代码后忽略短时成功缓存：php bin/hyperf.php preStart --force --no-interaction。
+ * 在业务服务根目录执行：php bin/hyperf.php preStart。
+ * 默认关闭交互并复用 30 秒内的成功结果，避免入口脚本与 start 重复初始化。
+ * 手动忽略成功缓存时执行：php bin/hyperf.php preStart --force。
  */
 #[Command]
 class PreStartCommand extends HyperfCommand
@@ -71,7 +74,7 @@ class PreStartCommand extends HyperfCommand
         parent::__construct('preStart');
     }
 
-    /** 配置更新代码后强制重新检查的选项。 */
+    /** 配置需要手动忽略短时成功缓存时使用的选项。 */
     public function configure(): void
     {
         parent::configure();
@@ -113,9 +116,24 @@ class PreStartCommand extends HyperfCommand
         }
     }
 
+    /** 默认不等待交互输入，保留成功缓存以兼容先 preStart 再 start 的启动脚本。 */
+    protected function initialize(InputInterface $input, OutputInterface $output): void
+    {
+        parent::initialize($input, $output);
+        $input->setInteractive(false);
+    }
+
     /** 按文件调度独立进程；组件先于业务执行，每批保留原来的回滚范围。 */
     protected function runMigrations(string $componentPath, string $applicationPath): void
     {
+        if (! is_dir($componentPath) || ! is_readable($componentPath)) {
+            throw new \RuntimeException(sprintf('Component migration directory is missing or unreadable: %s', $componentPath));
+        }
+        $componentFiles = $this->migrator->getMigrationFiles([$componentPath]);
+        if ($componentFiles === []) {
+            throw new \RuntimeException(sprintf('No component migration files found in: %s', $componentPath));
+        }
+        $this->info(sprintf('preStart component migration path: %s', $componentPath));
         $this->migrator->setConnection('default');
         $repository = $this->migrator->getRepository();
         if (! $repository->repositoryExists()) {
@@ -123,9 +141,12 @@ class PreStartCommand extends HyperfCommand
             $repository->createRepository();
         }
         $ran = array_fill_keys($repository->getRan(), true);
-        foreach ([[$componentPath], [...$this->migrator->paths(), $applicationPath]] as $paths) {
+        foreach (['component' => [$componentPath], 'application' => [...$this->migrator->paths(), $applicationPath]] as $scope => $paths) {
+            $files = $scope === 'component' ? $componentFiles : $this->migrator->getMigrationFiles($paths);
+            $pending = array_diff_key($files, $ran);
+            $this->info(sprintf('preStart %s migrations: found=%d, pending=%d.', $scope, count($files), count($pending)));
             $batch = $repository->getNextBatchNumber();
-            foreach ($this->migrator->getMigrationFiles($paths) as $name => $file) {
+            foreach ($files as $name => $file) {
                 if (isset($ran[$name])) {
                     continue;
                 }
@@ -154,7 +175,8 @@ class PreStartCommand extends HyperfCommand
     /** 顺序执行迁移与服务初始化，任一迁移失败时不再执行后续任务。 */
     protected function runPreStartTasks(): void
     {
-        $this->runMigrations(dirname(__DIR__) . '/migrations', BASE_PATH . '/migrations');
+        // 沿用原 migrate --path 的组件安装路径，避免 __DIR__ 被代理缓存固化为构建目录。
+        $this->runMigrations(BASE_PATH . '/vendor/bailing/helper/src/migrations', BASE_PATH . '/migrations');
         $this->checkLockRenewal();
 
         // 扫描数据表字段的redis缓存，且删除掉

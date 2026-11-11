@@ -40,6 +40,6 @@ class ServerStartAspect extends AbstractAspect
     /** 独立运行预启动命令，等待完成且不限制迁移耗时。 */
     protected function createProcess(): Process
     {
-        return new Process([PHP_BINARY, BASE_PATH . '/bin/hyperf.php', 'preStart', '--no-interaction'], null, null, null, null);
+        return new Process([PHP_BINARY, BASE_PATH . '/bin/hyperf.php', 'preStart'], null, null, null, null);
     }
 }
