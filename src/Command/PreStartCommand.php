@@ -47,19 +47,19 @@ use Symfony\Component\Process\Process as ConsoleProcess;
 class PreStartCommand extends HyperfCommand
 {
     /** 服务级启动锁及短时成功缓存的键前缀。 */
-    private const CACHE_KEY_PREFIX = 'service_auto:pre_start_command:';
+    private const string CACHE_KEY_PREFIX = 'service_auto:pre_start_command:';
 
     /** 运行锁租期，单位秒，容器异常退出后由 Redis 自动释放。 */
-    private const RUNNING_CACHE_TTL_SECONDS = 30;
+    private const int RUNNING_CACHE_TTL_SECONDS = 30;
 
     /** 持锁期间的续租间隔，单位秒。 */
-    private const LOCK_RENEW_INTERVAL_SECONDS = 5;
+    private const int LOCK_RENEW_INTERVAL_SECONDS = 5;
 
     /** 等待其他实例完成或遗留锁过期时的重试间隔，单位秒。 */
-    private const LOCK_RETRY_INTERVAL_SECONDS = 1;
+    private const int LOCK_RETRY_INTERVAL_SECONDS = 1;
 
     /** 成功缓存保留时间，单位秒，避免入口脚本与启动监听重复初始化。 */
-    private const COMPLETED_CACHE_TTL_SECONDS = 30;
+    private const int COMPLETED_CACHE_TTL_SECONDS = 30;
 
     /** 查询待执行迁移及完成记录，父进程不直接执行迁移。 */
     #[Inject]
