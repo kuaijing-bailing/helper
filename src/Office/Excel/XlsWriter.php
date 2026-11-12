@@ -8,6 +8,7 @@ declare(strict_types=1);
  * @document https://help.kuaijingai.com
  * @contact  www.kuaijingai.com 7*12 9:00-21:00
  */
+
 namespace Bailing\Office\Excel;
 
 use Bailing\Constants\Code\Common\CommonCode;
@@ -244,9 +245,7 @@ class XlsWriter extends Excel implements ExcelPropertyInterface
             );
             // 判断校验字段
             if (! empty($this->property[$i]['dictNameArr'])) {
-                if (count($this->property[$i]['dictNameArr']) < 10) {
-                    $validationField[$i] = array_values($this->property[$i]['dictNameArr']);
-                }
+                $validationField[$i] = array_values($this->property[$i]['dictNameArr']);
             } elseif (! empty($this->property[$i]['dictData'])) {
                 $validationField[$i] = array_values($this->property[$i]['dictData']);
             }
@@ -367,6 +366,10 @@ class XlsWriter extends Excel implements ExcelPropertyInterface
 
         // 判断校验字段
         foreach ($validationField as $key => $item) {
+            // 内联下拉列表包含逗号分隔符和首尾双引号，超过 255 个字符时跳过，避免导出失败
+            if (mb_strlen(implode(',', $item), 'UTF-8') + 2 > 255) {
+                continue;
+            }
             $validation = new Validation();
             $validation = $validation->validationType(Validation::TYPE_LIST)->valueList($item);
             $forRows = max(count($exportData), 22);
