@@ -49,7 +49,7 @@ class ExtraFieldsController
                 ],
             ];
         }
-        $list = buildFormSearchQuery(BailingExtraFields::query()->where(['org_id' => $nowAdmin->org_id]), $post['filters'], $post['sorts'])->paginate((int) $pageSize)->toArray();
+        $list = buildFormSearchQuery(BailingExtraFields::query()->where(['org_id' => $nowAdmin->org_id]), $post['filters'] ?? [], $post['sorts'] ?? [])->paginate((int) $pageSize)->toArray();
 
         return ApiHelper::genSuccessData(
             genListData(

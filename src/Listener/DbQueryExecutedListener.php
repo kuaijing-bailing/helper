@@ -12,6 +12,7 @@ declare(strict_types=1);
 namespace Bailing\Listener;
 
 use Bailing\Helper\LogSecurityHelper;
+use Bailing\Helper\SqlLogHelper;
 use Hyperf\Database\Events\QueryExecuted;
 use Hyperf\Event\Annotation\Listener;
 use Hyperf\Event\Contract\ListenerInterface;
@@ -41,7 +42,7 @@ class DbQueryExecutedListener implements ListenerInterface
         return [QueryExecuted::class];
     }
 
-    /** 逐条检查全局日志窗口；不能通过 SQL 字面量或绑定参数泄露凭据。 */
+    /** 逐条检查全局日志窗口，记录完整 SQL；窗口外只隐藏敏感字段值。 */
     public function process(object $event): void
     {
         if ($event instanceof QueryExecuted) {
@@ -51,7 +52,7 @@ class DbQueryExecutedListener implements ListenerInterface
             if (str_contains($sql, 'temp_org_menu') || str_contains($sql, 'temp_system_menu') || str_starts_with($sql, 'insert into `operation_logs`')) {
                 return;
             }
-            // 不猜测列名或解析 SQL 字面量；窗口外隐藏原文，避免原生 SQL、注释及命名绑定泄密。
+            // 只格式化日志副本；脱敏模式不另存原始 bindings，避免旁路泄露。
             $context = [
                 'sensitive_log_mode' => $plaintext ? 'plaintext' : 'redacted',
                 'connection_name' => $event->connectionName,
@@ -60,9 +61,8 @@ class DbQueryExecutedListener implements ListenerInterface
             ];
             if ($plaintext) {
                 $context['bindings'] = $event->bindings;
-            } else {
-                $sql = '[REDACTED]';
             }
+            $sql = SqlLogHelper::format($sql, $event->connection->prepareBindings($event->bindings), $plaintext, (string) $event->connection->getDriverName());
             if ($event->time > 2000) {
                 $this->logger->warning(sprintf('[%sms] -db- %s', $event->time, $sql), $context);
             } else {
